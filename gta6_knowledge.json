@@ -1,0 +1,433 @@
+{
+  "_about": "What is in GTA 6 and what players are sharing. Used by detector.py (chat words), discovery.py (transcript words + vision prompt). Researched 19 Nov 2026 from launch-day coverage (Kotaku, TechRadar, GameSpot via EndgameTools, Game Informer wildlife reveal). Add new finds to 'discoveries'.",
+  "updated": "2026-11-20",
+  "discoveries": [
+    {
+      "name": "Bigfoot in the swamp",
+      "where": "Gullet Marsh / Grassrivers swamps",
+      "tier": "hot",
+      "words": [
+        "bigfoot",
+        "big foot",
+        "sasquatch",
+        "yeti"
+      ],
+      "look": "a large hairy ape-like creature in a swamp"
+    },
+    {
+      "name": "Dog in goggles on a jet ski",
+      "where": "at sea when stranded",
+      "tier": "hot",
+      "words": [
+        "jet ski",
+        "jetski",
+        "dog on",
+        "goggles"
+      ],
+      "look": "a dog wearing goggles riding or steering a jet ski"
+    },
+    {
+      "name": "Dog driving a vehicle",
+      "where": "anywhere",
+      "tier": "hot",
+      "words": [
+        "dog driving",
+        "dog is driving"
+      ],
+      "look": "a dog in the driver seat of a vehicle"
+    },
+    {
+      "name": "Giant crab monster",
+      "where": "unknown, rare",
+      "tier": "rare",
+      "words": [
+        "crab",
+        "giant crab",
+        "crab monster"
+      ],
+      "look": "a giant crab creature"
+    },
+    {
+      "name": "Egg in a nest on the tallest radio tower",
+      "where": "top of the tallest radio tower, Vice City",
+      "tier": "hot",
+      "words": [
+        "egg",
+        "nest",
+        "radio tower",
+        "easter egg"
+      ],
+      "look": "a bird nest with an egg on top of a tall tower"
+    },
+    {
+      "name": "Sahara truck crash lawsuit guy",
+      "where": "Vice City streets",
+      "tier": "hot",
+      "words": [
+        "sahara",
+        "lawsuit",
+        "set his legs on fire",
+        "legs on fire"
+      ],
+      "look": "a delivery truck crashed into a sedan, a man setting his legs on fire"
+    },
+    {
+      "name": "Cat attacks in a stolen car",
+      "where": "any carjacking",
+      "tier": "hot",
+      "words": [
+        "cat",
+        "the cat"
+      ],
+      "look": "a cat attacking the player inside a car"
+    },
+    {
+      "name": "Petting dogs and cats",
+      "where": "anywhere",
+      "tier": "common",
+      "words": [
+        "pet the dog",
+        "pet the cat",
+        "petting"
+      ],
+      "look": "the player petting a dog or cat"
+    },
+    {
+      "name": "Alligator / gator encounter",
+      "where": "Grassrivers, canals, golf courses",
+      "tier": "common",
+      "words": [
+        "gator",
+        "alligator",
+        "crocodile",
+        "croc"
+      ],
+      "look": "an alligator in water or on land"
+    },
+    {
+      "name": "Plane crash / plane that won't explode",
+      "where": "anywhere",
+      "tier": "hot",
+      "words": [
+        "plane",
+        "crash",
+        "won't explode",
+        "airplane",
+        "jet"
+      ],
+      "look": "a crashed airplane or plane explosion"
+    },
+    {
+      "name": "Airboat / hovercraft in the swamp",
+      "where": "Grassrivers",
+      "tier": "rare",
+      "words": [
+        "airboat",
+        "hovercraft",
+        "fan boat"
+      ],
+      "look": "an airboat or hovercraft on swamp water"
+    },
+    {
+      "name": "Dolphins, sea turtles, sharks",
+      "where": "Leonida Keys, ocean",
+      "tier": "rare",
+      "words": [
+        "dolphin",
+        "turtle",
+        "shark",
+        "manatee",
+        "stingray"
+      ],
+      "look": "marine animals in the ocean"
+    },
+    {
+      "name": "Legendary / rare animal",
+      "where": "Mount Kalaga, Grassrivers",
+      "tier": "rare",
+      "words": [
+        "legendary",
+        "rare animal",
+        "bear",
+        "panther",
+        "puma",
+        "deer",
+        "boar"
+      ],
+      "look": "a large wild animal, bear, panther or rare creature"
+    },
+    {
+      "name": "UFO / ghost / supernatural",
+      "where": "unknown",
+      "tier": "rare",
+      "words": [
+        "ufo",
+        "alien",
+        "ghost",
+        "spooky",
+        "creepy"
+      ],
+      "look": "a UFO, alien, ghost or supernatural sight"
+    },
+    {
+      "name": "Police let you go with a warning",
+      "where": "anywhere",
+      "tier": "common",
+      "words": [
+        "warning",
+        "let me go",
+        "let him go"
+      ],
+      "look": "police talking to the player with weapons holstered"
+    },
+    {
+      "name": "Police chase / helicopter / wanted stars",
+      "where": "anywhere",
+      "tier": "common",
+      "words": [
+        "cops",
+        "police",
+        "helicopter",
+        "heli",
+        "chopper",
+        "wanted",
+        "stars"
+      ],
+      "look": "police cars or a police helicopter chasing the player"
+    },
+    {
+      "name": "Big car crash / destruction physics",
+      "where": "anywhere",
+      "tier": "hot",
+      "words": [
+        "crash",
+        "flipped",
+        "car is in pieces",
+        "totaled"
+      ],
+      "look": "a heavily damaged or flipped car"
+    },
+    {
+      "name": "Dexter's apartment",
+      "where": "Washington Island, Vice City, near Top Fun Drones",
+      "tier": "rare",
+      "words": [
+        "dexter"
+      ],
+      "look": "an apartment building on Washington Island"
+    },
+    {
+      "name": "Hidden money / rare collectible card",
+      "where": "unknown",
+      "tier": "rare",
+      "words": [
+        "13k",
+        "collectible",
+        "card",
+        "pawn shop",
+        "money spot"
+      ],
+      "look": "a stash of cash or a collectible card"
+    },
+    {
+      "name": "Scooter Bros car delivery app",
+      "where": "phone",
+      "tier": "common",
+      "words": [
+        "scooter bros",
+        "deliver my car"
+      ],
+      "look": "a car being delivered by app"
+    },
+    {
+      "name": "Funny job / activity (wall painting, gym)",
+      "where": "Vice City",
+      "tier": "common",
+      "words": [
+        "painting",
+        "gym",
+        "job",
+        "working"
+      ],
+      "look": "the player doing a job or gym activity"
+    },
+    {
+      "name": "Paul Walker's Mitsubishi Eclipse",
+      "where": "Villa garage on Vespucci Island, Vice City; break in through the garage door, then take the car",
+      "tier": "rare",
+      "words": [
+        "paul walker car",
+        "fast and furious",
+        "mitsubishi eclipse",
+        "vespucci island"
+      ],
+      "look": "Green Mitsubishi Eclipse parked inside a villa garage on a tropical island.",
+      "source": "Insider Gaming",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Snake jumps out of trunk",
+      "where": "Open a parked car's trunk anywhere; also inside Paul Walker's Eclipse on Vespucci Island",
+      "tier": "hot",
+      "words": [
+        "snake in trunk",
+        "snake jumpscare",
+        "toy story snake",
+        "trunk snake"
+      ],
+      "look": "Character opens a car trunk as a large snake lunges out at him.",
+      "source": "Vice",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Pet snake Dolores",
+      "where": "Pet snake named Dolores; feeding it gives a focus boost",
+      "tier": "rare",
+      "words": [
+        "pet snake",
+        "dolores snake",
+        "feed the snake",
+        "focus boost"
+      ],
+      "look": "Character kneeling to feed a snake, with a focus meter glowing on screen.",
+      "source": "Vice",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "RX-Men comic book",
+      "where": "Buy the parody comic for $1.25 at the 24/7 store in Key Lento",
+      "tier": "rare",
+      "words": [
+        "rx men",
+        "rx-men",
+        "x-men parody",
+        "placebo comic"
+      ],
+      "look": "Parody comic cover with knockoff mutant heroes in a pulpy comic style.",
+      "source": "SuperHeroHype",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Boat stuck under bridge glitch",
+      "where": "Driving across a bridge in Vice City; a boat wedges between bridge supports and a wall",
+      "tier": "rare",
+      "words": [
+        "boat glitch",
+        "boat bridge",
+        "stuck boat",
+        "bridge glitch"
+      ],
+      "look": "Large boat wedged between bridge pillars and a wall, jittering erratically.",
+      "source": "Gulf News",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Hunting and selling carcasses",
+      "where": "Wetlands, forests and coast; hunt animals with weapons, then sell the carcasses for cash",
+      "tier": "rare",
+      "words": [
+        "hunting",
+        "sell carcass",
+        "animal hunting",
+        "wildlife cash"
+      ],
+      "look": "Player aiming a rifle at a deer in a forest clearing.",
+      "source": "playday.one",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Piebald whitetail buck",
+      "where": "Forests and wetlands in Leonida; occasional rare colour variant",
+      "tier": "rare",
+      "words": [
+        "piebald deer",
+        "white deer",
+        "rare buck",
+        "spotted deer"
+      ],
+      "look": "Deer with unusual patchy white and brown coat standing in forest.",
+      "source": "playday.one",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Leonida white wild turkey",
+      "where": "Forested areas and grassy lowlands in Leonida; uncommon white-feathered variant",
+      "tier": "rare",
+      "words": [
+        "white turkey",
+        "rare turkey",
+        "white tom",
+        "albino bird"
+      ],
+      "look": "White-feathered wild turkey standing in grassy lowland at daytime.",
+      "source": "playday.one",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Mount Kalaga secret tower and bunker",
+      "where": "Marked spot on top of Mount Kalaga; climb a tower to find it",
+      "tier": "rare",
+      "words": [
+        "mount kalaga",
+        "secret bunker",
+        "military bunker",
+        "mountain tower"
+      ],
+      "look": "Tall radio tower on a mountaintop with a hidden bunker entrance.",
+      "source": "Sportskeeda",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "Broken glider on secret island",
+      "where": "Coastal island northwest of the Mariana County mainland",
+      "tier": "rare",
+      "words": [
+        "broken glider",
+        "glider wreck",
+        "secret island",
+        "crashed glider"
+      ],
+      "look": "Broken glider wreck lying on a small coastal island.",
+      "source": "Sportskeeda",
+      "added": "2026-11-20"
+    },
+    {
+      "name": "67 apple gesture",
+      "where": "Inside a store; player tosses apples while bobbing palms like a scale",
+      "tier": "rare",
+      "words": [
+        "six seven",
+        "apple scale",
+        "67 meme"
+      ],
+      "look": "Man in a store tossing apples while bobbing his palms up and down.",
+      "source": "VGTimes",
+      "added": "2026-11-20"
+    }
+  ],
+  "regions": [
+    "Vice City",
+    "Leonida Keys",
+    "Grassrivers",
+    "Port Gellhorn",
+    "Ambrosia",
+    "Mount Kalaga National Park",
+    "Lake Leonida",
+    "Gullet Marsh",
+    "Washington Island",
+    "Ocean Drive",
+    "Vice Beach"
+  ],
+  "never_post": {
+    "_why": "Rockstar policy, campaign rules or platform limits",
+    "items": [
+      "story cutscenes and the prologue twist (spoilers)",
+      "Mandy / nudity / shower scenes / strip clubs",
+      "suggestive dancing or sexual content",
+      "gore",
+      "cheats and money glitches",
+      "menus and loading screens",
+      "radio music as the main audio (copyright)"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+faster-whisper>=1.1
+anthropic>=0.40
+streamlink>=7.0
+yt-dlp
+nvidia-cublas-cu12
+nvidia-cudnn-cu12==9.*
+pillow
+opencv-python-headless>=4.9
+numpy
+open_clip_torch
+panns_inference
