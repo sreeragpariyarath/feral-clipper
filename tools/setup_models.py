@@ -1,18 +1,23 @@
 """Download the open-source model weights once (about 1 GB total). Safe to re-run; it resumes.
 
-  python setup_models.py
+  python tools/setup_models.py
 
   - AudioSet labels      (GitHub)        ~30 KB
   - PANNs Cnn14 weights  (Zenodo)        ~330 MB
   - OpenCLIP ViT-B-32    (Hugging Face)  ~600 MB
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # so `clipper` is found when run from tools\
+
 import shutil
 import sys
 import time
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 MODELS = ROOT / "models"
 LABELS = Path.home() / "panns_data" / "class_labels_indices.csv"
 LABEL_URLS = [
@@ -69,7 +74,7 @@ def main():
         import os
         os.environ.pop("HF_HUB_OFFLINE", None)
         sys.path.insert(0, str(ROOT))
-        from local_models import Clip
+        from clipper.ai.local_models import Clip
         c = Clip()
         print(f"  ok   CLIP loaded on {c.dev}")
     except Exception as e:
@@ -78,7 +83,7 @@ def main():
     if ok:
         print("\nTesting the audio model...")
         try:
-            from local_models import AudioTagger
+            from clipper.ai.local_models import AudioTagger
             a = AudioTagger()
             print(f"  ok   PANNs loaded on {a.dev}, watching {len(a.idx)} sound types")
         except Exception as e:

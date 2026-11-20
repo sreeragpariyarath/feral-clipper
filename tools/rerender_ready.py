@@ -1,16 +1,21 @@
 """Re-render every approved clip of a session with the current layout/settings.
 
-    python rerender_ready.py data\\vod\\twitchvod-v2933231152
-    python rerender_ready.py data\\kaicenat\\20261119-220525 --all-ready
+    python tools/rerender_ready.py data\\vod\\twitchvod-v2933231152
+    python tools/rerender_ready.py data\\kaicenat\\20261119-220525 --all-ready
 
 Only clips whose status.json says "ready" are re-rendered (skipped clips - cutscenes, menus -
 stay skipped). Uses each clip's saved judge.json, so no API calls are made.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # so `clipper` is found when run from tools\
+
 import argparse
 from pathlib import Path
 
-from common import load_config, log, read_json
-from pipeline import rerender
+from clipper.common import load_config, log, read_json
+from clipper.pipeline import rerender
 
 
 def main():

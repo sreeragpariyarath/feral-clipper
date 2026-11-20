@@ -8,7 +8,7 @@ import argparse
 import json
 from pathlib import Path
 
-from common import load_config, log, read_json
+from clipper.common import load_config, log, read_json
 
 
 def load_candidates(session):
@@ -36,7 +36,7 @@ def main():
     cfg = load_config()
 
     if args.rerender:
-        from pipeline import rerender
+        from clipper.pipeline import rerender
         rerender(args.rerender, cfg, args.judge)
         return
 
@@ -51,7 +51,7 @@ def main():
         print("Use --all or --id N")
         return
 
-    from pipeline import process_candidate
+    from clipper.pipeline import process_candidate
     for c in cands:
         try:
             process_candidate(args.session, c, cfg, force=args.force)

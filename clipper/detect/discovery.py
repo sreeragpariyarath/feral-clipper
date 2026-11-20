@@ -14,7 +14,7 @@ import os
 import re
 from pathlib import Path
 
-from common import log, run
+from clipper.common import ROOT, log, run
 
 # ---- layer 1: transcript -------------------------------------------------------------
 
@@ -37,7 +37,7 @@ NOUNS = [
 
 # ---- what is actually in GTA 6 (gta6_knowledge.json, researched + updated over time) ----
 def load_knowledge():
-    p = Path(__file__).resolve().parent / "gta6_knowledge.json"
+    p = ROOT / "gta6_knowledge.json"
     try:
         return json.loads(p.read_text(encoding="utf-8"))
     except Exception:

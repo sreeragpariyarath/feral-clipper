@@ -14,10 +14,10 @@ import threading
 import time
 from pathlib import Path
 
-import chat_twitch
-from common import fmt_ts, load_config, log, need, write_json
-from detector import Detector
-from media import list_segments, segments_ready
+from clipper.sources import chat_twitch
+from clipper.common import fmt_ts, load_config, log, need, write_json
+from clipper.detect.detector import Detector
+from clipper.render.media import list_segments, segments_ready
 
 
 def recorder(channel, seg_dir, cfg, stop):
@@ -132,7 +132,7 @@ def main():
     busy_from = [time.time()]
 
     def worker():
-        from pipeline import process_candidate
+        from clipper.pipeline import process_candidate
         while not stop.is_set():
             try:
                 cand = work.get(timeout=1)

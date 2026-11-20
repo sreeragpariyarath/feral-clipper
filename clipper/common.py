@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]   # project folder (config.json, data/, models/ live here)
 
 # Windows consoles default to a legacy codepage; don't crash on emoji in titles/chat.
 for _stream in (sys.stdout, sys.stderr):
@@ -97,3 +97,27 @@ def read_json(path):
 def fmt_ts(seconds):
     seconds = max(0, int(seconds))
     return f"{seconds // 3600:02d}:{seconds % 3600 // 60:02d}:{seconds % 60:02d}"
+
+
+def to_sec(v):
+    """'1:02:03' / '2:03' / '45' -> seconds."""
+    parts = [float(p) for p in str(v).split(":")]
+    while len(parts) < 3:
+        parts.insert(0, 0)
+    return parts[0] * 3600 + parts[1] * 60 + parts[2]
+
+
+def video_of(session):
+    """The downloaded VOD file inside a session folder."""
+    for ext in (".mp4", ".mkv", ".ts", ".webm"):
+        v = Path(session) / f"vod{ext}"
+        if v.exists():
+            return v
+    raise SystemExit(f"No vod.mp4 in {session}. Run vod.py on the VOD first (it downloads the full video).")
+
+
+def duration_of(video):
+    """Length of a media file in seconds (ffprobe)."""
+    out = run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+               "-of", "default=nw=1:nk=1", str(video)]).stdout.strip()
+    return float(out)

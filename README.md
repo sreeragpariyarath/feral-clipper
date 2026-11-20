@@ -17,6 +17,25 @@ Two modes, same pipeline:
 
 ---
 
+## Project layout
+
+```
+vod.py  scan.py  merge.py  live.py  picks.py  cut.py     the commands you run (options + order of steps only)
+clipper/
+  common.py            config, paths, logging, ffmpeg helper, time helpers
+  pipeline.py          one moment -> transcript -> Claude judge -> rendered clip
+  sources/             getting material: vod_source.py (VOD info, chat, download), chat_twitch.py, audio_detect.py
+  detect/              finding moments: detector.py (chat spikes), frame_scan.py (what is on screen), discovery.py
+  ai/                  judge.py (Claude), transcribe.py (Whisper), local_models.py (CLIP + PANNs on your GPU)
+  render/              media.py (ffmpeg, captions, 9:16 layout, campaign logo), overlay.py, facecam_auto.py
+tools/                 occasional helpers: frame.py, transcript.py, rerender_ready.py, update_knowledge.py,
+                       setup_models.py, apitest.py     (run as: python tools\setup_models.py)
+config.json  gta6_knowledge.json  models/  data/  READY_TO_POST/
+```
+
+Rule of thumb: a command file never contains logic worth reusing; it parses options and calls functions in `clipper/`.
+`clipper/` imports only downward (sources/detect/ai/render -> common), so there are no circular imports.
+
 ## 1. One-time setup (Windows)
 
 1. **Python 3.11** from python.org (tick "Add to PATH").
@@ -31,7 +50,7 @@ Two modes, same pipeline:
    ```
 4. **Check Whisper on the GPU** (first run downloads the model, about 1.6 GB):
    ```
-   python -c "from transcribe import get_model; from common import load_config; get_model(load_config())"
+   python -c "from clipper.ai.transcribe import get_model; from clipper.common import load_config; get_model(load_config())"
    ```
    It should print `Whisper loaded: large-v3-turbo on cuda`. If it says it fell back to CPU,
    update your NVIDIA driver and run the command again.
@@ -66,7 +85,7 @@ python live.py somechannel --auto
 
 **C. Set the facecam box once per streamer:**
 ```
-python frame.py "data\somechannel\20261117-210512"
+python tools\frame.py "data\somechannel\20261117-210512"
 ```
 Open `frame.jpg`. The yellow grid splits the frame into tenths. Read the facecam box and put it in `config.json`:
 ```json

@@ -6,11 +6,16 @@ script MERGES them into the list (it never deletes):
   - existing items can move hot -> common as they get posted everywhere
   - a backup of the old file is kept as gta6_knowledge.<date>.bak.json
 
-  python update_knowledge.py            # update now (~1-3 cents)
-  python update_knowledge.py --show     # just print the current list
+  python tools/update_knowledge.py            # update now (~1-3 cents)
+  python tools/update_knowledge.py --show     # just print the current list
 
 Run it once a day (or let live.py / a Windows scheduled task run it).
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # so `clipper` is found when run from tools\
+
 import argparse
 import datetime as dt
 import json
@@ -20,7 +25,7 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 KFILE = ROOT / "gta6_knowledge.json"
 
 PROMPT = """You maintain a list of things inside Grand Theft Auto VI (released 19 Nov 2026) that make good \
@@ -66,7 +71,7 @@ def main():
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise SystemExit("Set ANTHROPIC_API_KEY first.")
     sys.path.insert(0, str(ROOT))
-    from common import load_config
+    from clipper.common import load_config
     cfg = load_config()
     model = args.model or cfg["anthropic_model"]
     import anthropic

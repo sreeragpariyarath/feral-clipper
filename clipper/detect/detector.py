@@ -16,6 +16,8 @@ from collections import Counter, defaultdict, deque
 
 import re
 
+from clipper.common import ROOT
+
 # whole-word reaction words (regex), plus emoji (substring)
 WORDS = {
     "funny": r"lol+|lmao+|lmfao+|kekw|lul|omegalul|icant|i can'?t|ha(ha)+|dead+|crying|xd",
@@ -34,7 +36,7 @@ def _known_words():
     import json
     from pathlib import Path
     try:
-        k = json.loads((Path(__file__).resolve().parent / "gta6_knowledge.json").read_text(encoding="utf-8"))
+        k = json.loads((ROOT / "gta6_knowledge.json").read_text(encoding="utf-8"))
     except Exception:
         return []
     generic = {"cat", "egg", "card", "job", "stars", "crash", "plane", "warning", "working", "police", "cops",

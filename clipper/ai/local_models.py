@@ -5,15 +5,16 @@
   AudioTagger  - PANNs Cnn14 (AudioSet, 527 sound classes). Hears sirens, gunfire, explosions,
                  helicopters, screaming, crashes... even when chat and the streamer are quiet.
 
-Weights are downloaded once by:  python setup_models.py
+Weights are downloaded once by:  python tools/setup_models.py
 """
 import json
 import subprocess
 from pathlib import Path
 
+from clipper.common import ROOT
+
 import numpy as np
 
-ROOT = Path(__file__).resolve().parent
 MODELS = ROOT / "models"
 PANNS_CKPT = MODELS / "Cnn14_mAP=0.431.pth"
 CLIP_ARCH, CLIP_TAG = "ViT-B-32", "laion2b_s34b_b79k"

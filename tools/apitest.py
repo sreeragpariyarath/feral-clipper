@@ -1,6 +1,11 @@
-"""Quick check that the API key + model work:  python apitest.py"""
+"""Quick check that the API key + model work:  python tools/apitest.py"""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # so `clipper` is found when run from tools\
+
 import os, sys
-from common import load_config
+from clipper.common import load_config
 import anthropic
 cfg = load_config()
 if not os.environ.get("ANTHROPIC_API_KEY"):

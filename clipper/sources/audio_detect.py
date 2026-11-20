@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from common import log, run
+from clipper.common import log, run
 
 RATE = 8000  # loudness only, 8 kHz mono is plenty
 

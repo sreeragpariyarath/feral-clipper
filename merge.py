@@ -22,7 +22,7 @@ Re-running is safe: moments already rendered (same peak within 6 s) are skipped.
 import argparse
 from pathlib import Path
 
-from common import fmt_ts, load_config, log, read_json, run, write_json
+from clipper.common import duration_of, fmt_ts, load_config, log, read_json, write_json
 
 AGREE_BOOST = 0.10
 MATCH_BEFORE = 45        # scan frame may be this many seconds before the chat peak
@@ -85,12 +85,6 @@ def shift_chat(chat, s0, dur=None):
     return out
 
 
-def duration_of(video):
-    res = run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1",
-               str(video)])
-    return float(res.stdout.strip())
-
-
 def describe(m):
     src = "+".join(m["sources"])
     bits = []
@@ -148,12 +142,12 @@ def main():
     if not meta or not meta.get("file"):
         raise SystemExit("No downloaded VOD in this session. Run: python vod.py <url> --download-only")
     cfg = load_config()
-    from media import campaign_overlay
+    from clipper.render.media import campaign_overlay
     try:
         campaign_overlay(cfg)                    # fail now, not after Whisper and Claude have run
     except RuntimeError as e:
         raise SystemExit(str(e))
-    from pipeline import process_candidate
+    from clipper.pipeline import process_candidate
     clips = session / "clips"
     done = {}
     for d in clips.glob("7[0-9][0-9]"):

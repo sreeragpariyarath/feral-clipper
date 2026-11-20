@@ -4,7 +4,7 @@ import socket
 import ssl
 import time
 
-from common import log
+from clipper.common import log
 
 
 def parse_privmsg(line):

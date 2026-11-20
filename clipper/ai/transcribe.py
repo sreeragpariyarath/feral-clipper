@@ -4,7 +4,7 @@ import site
 import sys
 from pathlib import Path
 
-from common import log
+from clipper.common import log
 
 _model = None
 

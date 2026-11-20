@@ -1,11 +1,11 @@
 """Candidate -> transcript -> Claude judge -> rendered 9:16 clip."""
 from pathlib import Path
 
-from common import fmt_ts, log, read_json, write_json
-from discovery import analyze as discover
-from judge import judge, validate
-from media import detect_black, extract_audio, extract_window, render_clip
-from transcribe import plain_text, transcribe
+from clipper.common import fmt_ts, log, read_json, write_json
+from clipper.detect.discovery import analyze as discover
+from clipper.ai.judge import judge, validate
+from clipper.render.media import detect_black, extract_audio, extract_window, render_clip
+from clipper.ai.transcribe import plain_text, transcribe
 
 
 def clip_words(words, start_s, end_s):
@@ -132,7 +132,7 @@ def rerender(clip_dir, cfg, judge_file=None):
     tr = read_json(clip_dir / "transcript.json")
     jf = Path(judge_file) if judge_file else clip_dir / "judge.json"
     raw = jf.read_text(encoding="utf-8")
-    from judge import parse_json
+    from clipper.ai.judge import parse_json
     meta = read_json(session_dir / "session.json")
     media, offset = extract_window(session_dir, cand["win_start"], cand["win_end"], clip_dir)
     window_len = cand["win_end"] - cand["win_start"]

@@ -16,3 +16,9 @@ picks.backup
 .env
 *.tgz
 TwitchDownloaderCLI.exe
+models/
+*.pth
+*.safetensors
+*.onnx
+*.npy
+cam_test.jpg

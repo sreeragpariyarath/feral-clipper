@@ -4,7 +4,7 @@ import time
 import json
 from pathlib import Path
 
-from common import log, read_json, run
+from clipper.common import ROOT, log, read_json, run
 
 SEG_FMT = "%Y%m%d-%H%M%S"
 
@@ -170,7 +170,7 @@ def _crop(box):
 def _auto_cam(media, offset, duration, out_dir):
     """Find the webcam box for this clip ("facecam": "auto"). Returns a box dict or None (-> fit layout)."""
     try:
-        from facecam_auto import draw_debug, find_cam, to_box
+        from clipper.render.facecam_auto import draw_debug, find_cam, to_box
         res = find_cam(str(Path(media).resolve()), offset, offset + duration)
         (Path(out_dir) / "auto_cam.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
         box = to_box(res)
@@ -202,7 +202,7 @@ def campaign_overlay(cfg):
         return None
     p = Path(ov["file"])
     if not p.is_absolute():
-        p = Path(__file__).resolve().parent / p
+        p = ROOT / p
     if not p.exists():
         raise RuntimeError(f"campaign_overlay file not found: {p} (download it from the campaign page)")
     from PIL import Image
@@ -230,7 +230,7 @@ def render_clip(media, offset, duration, out_dir, cfg, words, hook=None, emphasi
     if layout == "overlay":
         # blurred backdrop, rounded facecam card on top, compact title card, and a SHARP game panel
         # that shows most of the frame (less zoom than a full-bleed 9:16 crop)
-        from overlay import cam_assets, round_mask, title_card
+        from clipper.render.overlay import cam_assets, round_mask, title_card
         fx = cfg.get("focus_x", 0.5)
         cw, ch = cfg.get("cam_size", [560, 315])
         cx, cy = (1080 - cw) // 2, cfg.get("cam_top", 60)

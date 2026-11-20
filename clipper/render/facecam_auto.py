@@ -14,10 +14,12 @@ Result mode: "cam"  = clean webcam rectangle
 import argparse, hashlib, json, sys, urllib.request
 from pathlib import Path
 
+from clipper.common import ROOT
+
 import cv2
 import numpy as np
 
-MODEL_DIR = Path(__file__).resolve().parent / "models"
+MODEL_DIR = ROOT / "models"
 MODEL = MODEL_DIR / "face_detection_yunet_2023mar.onnx"
 MODEL_SHA256 = "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
 MODEL_URLS = [

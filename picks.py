@@ -14,11 +14,12 @@ import json
 import subprocess
 from pathlib import Path
 
-from common import load_config, log, write_json
-from media import extract_audio, extract_window
-from pipeline import render_from_judge
-from transcribe import transcribe
-from transcript import to_sec, vod_session
+from clipper.common import load_config, log, write_json
+from clipper.render.media import extract_audio, extract_window
+from clipper.pipeline import render_from_judge
+from clipper.ai.transcribe import transcribe
+from clipper.common import to_sec
+from clipper.sources.vod_source import vod_session
 
 
 def ensure_video(url, session, info):

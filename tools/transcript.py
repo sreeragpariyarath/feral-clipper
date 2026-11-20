@@ -1,35 +1,25 @@
 """Make a timestamped transcript of a VOD so Claude (in chat) can pick the best moments.
 
-    python transcript.py <vod_url> [--from 0:50:00] [--to 2:53:00]
+    python tools/transcript.py <vod_url> [--from 0:50:00] [--to 2:53:00]
 
 Writes data/vod/<id>/transcript.txt. Each line:
     [01:35:28] LOUD+18 bro he's behind me BRO NO NO NO
 Upload that file to Claude and ask for picks; save the reply as picks.json, then run picks.py.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # so `clipper` is found when run from tools\
+
 import argparse
-import json
 from pathlib import Path
 
 import numpy as np
 
-import audio_detect
-from common import fmt_ts, load_config, log, run
-from transcribe import get_model
-
-
-def to_sec(v):
-    parts = [float(p) for p in v.split(":")]
-    while len(parts) < 3:
-        parts.insert(0, 0)
-    return parts[0] * 3600 + parts[1] * 60 + parts[2]
-
-
-def vod_session(url, cfg):
-    info = json.loads(run(["yt-dlp", "-J", "--no-warnings", url]).stdout)
-    site = info.get("extractor_key", "site").lower()
-    session = Path(cfg["data_dir"]) / "vod" / f"{site}-{info['id']}"
-    session.mkdir(parents=True, exist_ok=True)
-    return info, session
+from clipper.sources import audio_detect
+from clipper.common import fmt_ts, load_config, log, run, to_sec
+from clipper.sources.vod_source import vod_session
+from clipper.ai.transcribe import get_model
 
 
 def main():
