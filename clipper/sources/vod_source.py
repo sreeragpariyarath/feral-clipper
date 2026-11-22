@@ -127,9 +127,9 @@ def open_vod(url, cfg):
             break
         except RuntimeError:
             if attempt == 10:
-                raise SystemExit("Could not reach Twitch after 10 tries (your network drops it). "
+                raise SystemExit("Could not reach the video site after 10 tries (network or VPN problem). "
                                  "Turn on Cloudflare WARP / a VPN and run the command again.")
-            log(f"Twitch connection dropped (try {attempt}/10), retrying in 8 s...")
+            log(f"Connection dropped (try {attempt}/10), retrying in 8 s...")
             time.sleep(8)
     site = info.get("extractor_key", "site").lower()
     session = Path(cfg["data_dir"]) / "vod" / f"{site}-{info['id']}"
@@ -164,7 +164,8 @@ def find_moments(url, info, session, cfg, duration, chat=None, audio=False):
         for t, u, m in events:
             found += det.tick(t)
             det.feed(t, u, m)
-        found += det.tick((duration or events[-1][0]) + 120)
+        last = duration or (events[-1][0] if events else 0)   # empty chat must not crash here
+        found += det.tick(last + 120)
         found += det.flush()
     for c in found:
         c["win_start"] = max(0, c["win_start"])
