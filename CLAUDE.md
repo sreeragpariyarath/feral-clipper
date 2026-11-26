@@ -22,6 +22,10 @@ python tools\setup_models.py                # one-time: download local CLIP + PA
 python tools\frame.py <session>             # dump frame.jpg with grid to set facecam box in config.json
 ```
 
+## App (backend + frontend)
+
+`start_all.bat` opens three windows: `python -m backend.run_api` (FastAPI on 127.0.0.1:8766), `python -m backend.run_worker` (runs queued jobs one at a time), and the Next.js frontend in `frontend/` (`npm run dev`, http://127.0.0.1:3107, proxies `/api/*` and `/media/*` to the API). State lives in SQLite `data/feral.db`; the importer re-reads `data/vod/*` files at API start and after each job step. API keys come from `.env` (git-ignored, never sent to the browser). Routes: `/api/v1/*` (new) and `/api/sessions`, `/api/jobs`, `/media` (kept for the current frontend). See `plan.md` for the phased roadmap.
+
 ## Architecture
 
 Top-level scripts (`vod.py scan.py merge.py live.py picks.py cut.py`) only parse options and sequence steps; reusable logic lives in `clipper/`. Imports go strictly downward (`sources/detect/ai/render` -> `common`) to avoid cycles; keep it that way.

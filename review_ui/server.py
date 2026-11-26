@@ -13,6 +13,8 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 
+import jobs
+
 ROOT = Path(__file__).resolve().parents[1]
 VOD_DIR = ROOT / "data" / "vod"
 PORT = int(os.environ.get("GTA_REVIEW_PORT", "8765"))
@@ -113,6 +115,24 @@ def read_monitor(session_id):
             "window": data.get("window"), "step": data.get("step"), "picks": picks}
 
 
+def trash_clip(session_id, clip_id):
+    """Move a clip folder into clips_trash/ so the delete can be undone by moving it back.
+    Nothing is removed permanently."""
+    import shutil
+    from datetime import datetime
+    clips_dir = VOD_DIR / session_id / "clips"
+    src = clips_dir / clip_id
+    if not src.is_dir():
+        return 404, {"error": "clip not found"}
+    trash = VOD_DIR / session_id / "clips_trash"
+    trash.mkdir(parents=True, exist_ok=True)
+    dest = trash / clip_id
+    if dest.exists():
+        dest = trash / f"{clip_id}_{datetime.now():%Y%m%d-%H%M%S}"
+    shutil.move(str(src), str(dest))
+    return 200, {"trashed": clip_id, "moved_to": str(dest)}
+
+
 def save_review(session_id, clip_id, body):
     decision = body.get("decision", "pending")
     if decision not in ALLOWED_DECISIONS:
@@ -198,6 +218,19 @@ class Handler(BaseHTTPRequestHandler):
             if parts[3] not in ("clip.mp4", "thumb.jpg"):
                 return self._json(404, {"error": "not found"})
             return self._file(VOD_DIR / parts[1] / "clips" / parts[2] / parts[3])
+        if parts == ["api", "jobs"]:
+            return self._json(200, jobs.list_jobs())
+        if len(parts) == 3 and parts[0] == "api" and parts[1] == "jobs":
+            status, payload = jobs.get_job(parts[2])
+            return self._json(status, payload)
+        return self._json(404, {"error": "not found"})
+
+    def do_DELETE(self):
+        parts = [unquote(p) for p in urlparse(self.path).path.split("/") if p]
+        if len(parts) == 5 and parts[0] == "api" and parts[1] == "sessions" and parts[3] == "clips" \
+                and _safe(parts[2]) and _safe(parts[4]):
+            status, payload = trash_clip(parts[2], parts[4])
+            return self._json(status, payload)
         return self._json(404, {"error": "not found"})
 
     def do_POST(self):
@@ -211,10 +244,19 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(400, {"error": "bad json"})
             status, payload = save_review(parts[2], parts[4], body)
             return self._json(status, payload)
+        if parts == ["api", "jobs"]:
+            length = int(self.headers.get("Content-Length") or 0)
+            try:
+                body = json.loads(self.rfile.read(length) or b"{}")
+            except ValueError:
+                return self._json(400, {"error": "bad json"})
+            status, payload = jobs.start_job(body)
+            return self._json(status, payload)
         return self._json(404, {"error": "not found"})
 
 
 def main():
+    jobs.load_env()          # reads .env so the Anthropic key is available to render jobs
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     print(f"Review API on http://127.0.0.1:{PORT}  (sessions in {VOD_DIR})", flush=True)
     srv.serve_forever()

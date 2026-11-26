@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import type { Clip, Decision } from "../../lib/types";
 import { mediaBase } from "../../lib/api";
 import { Button } from "../ui/Button";
@@ -14,9 +14,10 @@ type Props = {
   session: string;
   busy: boolean;
   onReview: (clip: Clip, decision: Decision) => void;
+  onDelete: (clip: Clip) => void;
 };
 
-export function ClipCard({ clip, session, busy, onReview }: Props) {
+export function ClipCard({ clip, session, busy, onReview, onDelete }: Props) {
   const media = mediaBase(session, clip.id);
   return (
     <article className="overflow-hidden rounded-2xl border bg-card shadow-sm">
@@ -51,6 +52,10 @@ export function ClipCard({ clip, session, busy, onReview }: Props) {
               {action.label}
             </Button>
           ))}
+          <Button disabled={busy} onClick={() => onDelete(clip)} className="inline-flex items-center gap-1 whitespace-nowrap text-red-500 hover:text-red-400">
+            <Trash2 size={13} />
+            Delete
+          </Button>
         </div>
       </div>
     </article>

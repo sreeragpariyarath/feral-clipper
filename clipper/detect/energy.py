@@ -33,7 +33,7 @@ WEIGHTS = {"energy": 0.25, "picture": 0.25, "sound": 0.15, "hook": 0.15, "payoff
 
 
 # ---------------------------------------------------------------- signals
-def audio_db_per_second(audio_path, start=0.0, duration=None):
+def audio_db_per_second(audio_path, start=0.0, duration=None, progress=None):
     """dBFS for every second of the audio. Streams the file, so a 12 h track never sits in memory."""
     if not audio_path.exists():
         raise FileNotFoundError(f"no audio track at {audio_path}")
@@ -55,6 +55,8 @@ def audio_db_per_second(audio_path, start=0.0, duration=None):
             samples = np.frombuffer(raw[: len(raw) // 2 * 2], dtype="<i2").astype(np.float32) / 32768.0
             rms = float(np.sqrt(np.mean(samples * samples))) if samples.size else 0.0
             out.append(20.0 * np.log10(rms + 1e-6))
+            if progress and len(out) % 60 == 0:
+                progress(len(out))              # seconds of audio measured so far
             if len(raw) < need:
                 break
     finally:
@@ -113,14 +115,16 @@ def picture_change_per_second(video, start, duration):
     return change[idx]
 
 
-def picture_change_long(video, start, duration):
-    """picture_change_per_second for any length, one hour at a time."""
+def picture_change_long(video, start, duration, progress=None, chunk_s=CHUNK_S):
+    """picture_change_per_second for any length, one chunk at a time."""
     parts = []
     t = 0.0
     while t < duration:
-        d = min(CHUNK_S, duration - t)
+        d = min(chunk_s, duration - t)
         parts.append(picture_change_per_second(video, start + t, d))
         t += d
+        if progress:
+            progress(t)                         # seconds of video measured so far
     return np.concatenate(parts) if parts else np.zeros(0, dtype=np.float32)
 
 

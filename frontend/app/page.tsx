@@ -42,6 +42,7 @@ export default function Library() {
           session={library.session}
           busy={library.saving !== null}
           onReview={library.review}
+          onDelete={library.remove}
         />
       </main>
     </div>

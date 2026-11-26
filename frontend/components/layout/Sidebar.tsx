@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutGrid, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LayoutGrid, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "../ui/Button";
 
 type Props = {
@@ -37,6 +37,15 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         >
           <LayoutGrid size={18} className="shrink-0" />
           {!collapsed && <span className="hidden sm:inline">Library</span>}
+        </Link>
+        <Link
+          href="/jobs"
+          aria-label="New stream"
+          title="New stream"
+          className="mt-1 flex items-center gap-3 rounded-xl p-2.5 font-semibold hover:bg-sidebar-accent"
+        >
+          <Plus size={18} className="shrink-0" />
+          {!collapsed && <span className="hidden sm:inline">New stream</span>}
         </Link>
       </nav>
     </aside>

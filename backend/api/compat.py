@@ -1,0 +1,138 @@
+"""Routes the current frontend already uses (/api/sessions, /api/jobs, /media).
+They read and write the same database as /api/v1, so both stay in step.
+Phase 3 moves the frontend to /api/v1; then these routes can go."""
+import re
+from pathlib import Path
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from sqlmodel import Session, select
+
+from .. import clips_service, jobs_service
+from ..config import VOD_DIR, key_status
+from ..db import get_session
+from ..models import Clip, Job, Stream
+
+router = APIRouter()
+SAFE = re.compile(r"^[A-Za-z0-9_\-]{1,80}$")
+
+
+def _safe(*parts: str) -> None:
+    for p in parts:
+        if not SAFE.match(p or ""):
+            raise HTTPException(400, "bad id")
+
+
+def _clip(session: Session, sid: str, cid: str) -> Clip:
+    _safe(sid, cid)
+    c = session.exec(select(Clip).where(Clip.stream_id == sid, Clip.clip_no == cid, Clip.deleted == False)).first()  # noqa: E712
+    if not c:
+        raise HTTPException(404, "clip not found")
+    return c
+
+
+@router.get("/api/sessions")
+def sessions(session: Session = Depends(get_session)):
+    out = []
+    for s in session.exec(select(Stream).order_by(Stream.id)).all():
+        clips = session.exec(select(Clip).where(Clip.stream_id == s.id, Clip.deleted == False)).all()  # noqa: E712
+        out.append({"id": s.id, "title": s.title or s.id, "channel": s.channel, "clips": len(clips),
+                    "ready": sum(1 for c in clips if c.status == "ready")})
+    return out
+
+
+@router.get("/api/sessions/{sid}/clips")
+def session_clips(sid: str, session: Session = Depends(get_session)):
+    _safe(sid)
+    rows = session.exec(select(Clip).where(Clip.stream_id == sid, Clip.deleted == False)).all()  # noqa: E712
+    rows = sorted(rows, key=lambda c: (c.status != "ready", -c.final_score))
+    return [{"id": c.clip_no, "status": c.status, "final": c.final_score, "strong": c.strong,
+             "has_video": c.has_video, "title": c.title, "caption": c.caption, "hook": c.hook,
+             "reasons": c.reasons, "judge_source": c.judge_source, "decision": c.decision} for c in rows]
+
+
+@router.get("/api/sessions/{sid}/monitor")
+def session_monitor(sid: str):
+    _safe(sid)
+    path = VOD_DIR / sid / "monitor.json"
+    if not path.exists():
+        return {"exists": False, "picks": []}
+    import json
+    return {"exists": True, **json.loads(path.read_text(encoding="utf-8"))}
+
+
+class ReviewIn(BaseModel):
+    decision: Optional[str] = None
+    title: Optional[str] = None
+    caption: Optional[str] = None
+
+
+@router.post("/api/sessions/{sid}/clips/{cid}/review")
+def session_review(sid: str, cid: str, body: ReviewIn, session: Session = Depends(get_session)):
+    try:
+        c = clips_service.update_review(session, _clip(session, sid, cid), body.decision, body.title, body.caption)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"decision": c.decision, "title": c.title, "caption": c.caption}
+
+
+@router.delete("/api/sessions/{sid}/clips/{cid}")
+def session_delete(sid: str, cid: str, session: Session = Depends(get_session)):
+    clips_service.trash(session, _clip(session, sid, cid))
+    return {"trashed": cid}
+
+
+# ---------------------------------------------------------------- jobs in the shape the current page expects
+def _old_job(session: Session, job: Job, with_log: bool) -> dict:
+    d = jobs_service.job_dict(session, job, with_log=with_log)
+    state = {"queued": "running", "running": "running", "done": "done"}.get(job.status, "failed")
+    return {"id": str(job.id), "url": job.source_url, "mode": job.kind, "top": job.params.get("top", 10),
+            "session": job.stream_id, "state": state,
+            "step": "queued" if job.status == "queued" else (job.current_step or job.status),
+            "started": d["started_at"] or d["created_at"], "finished": d["finished_at"], "error": job.error,
+            "log": d.get("log"), "progress": d["progress"]}
+
+
+class OldJobIn(BaseModel):
+    url: str = ""
+    path: str = ""
+    mode: str = "monitor"
+    top: int = 10
+
+
+@router.post("/api/jobs", status_code=202)
+def old_create_job(body: OldJobIn, session: Session = Depends(get_session)):
+    try:
+        job = jobs_service.create_job(session, body.mode, body.url, body.top, key_status()["anthropic"], body.path)
+    except jobs_service.JobError as e:
+        raise HTTPException(400, str(e))
+    return _old_job(session, job, with_log=False)
+
+
+@router.get("/api/jobs")
+def old_list_jobs(session: Session = Depends(get_session)):
+    return [_old_job(session, j, False) for j in session.exec(select(Job).order_by(Job.id.desc()).limit(20)).all()]
+
+
+@router.get("/api/jobs/{job_id}")
+def old_get_job(job_id: str, session: Session = Depends(get_session)):
+    if not job_id.isdigit():
+        raise HTTPException(404, "job not found")
+    job = session.get(Job, int(job_id))
+    if not job:
+        raise HTTPException(404, "job not found")
+    return _old_job(session, job, with_log=True)
+
+
+# ---------------------------------------------------------------- media (video seeking supported)
+@router.get("/media/{sid}/{cid}/{name}")
+def media(sid: str, cid: str, name: str):
+    _safe(sid, cid)
+    if name not in ("clip.mp4", "thumb.jpg"):
+        raise HTTPException(404, "not found")
+    path: Path = VOD_DIR / sid / "clips" / cid / name
+    if not path.is_file():
+        raise HTTPException(404, "not found")
+    return FileResponse(path, media_type="video/mp4" if name.endswith(".mp4") else "image/jpeg")

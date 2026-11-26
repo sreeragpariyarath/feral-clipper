@@ -6,13 +6,14 @@ type Props = {
   session: string;
   busy: boolean;
   onReview: (clip: Clip, decision: Decision) => void;
+  onDelete: (clip: Clip) => void;
 };
 
-export function ClipGrid({ clips, session, busy, onReview }: Props) {
+export function ClipGrid({ clips, session, busy, onReview, onDelete }: Props) {
   return (
     <section aria-label="Clips" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {clips.map((clip) => (
-        <ClipCard key={clip.id} clip={clip} session={session} busy={busy} onReview={onReview} />
+        <ClipCard key={clip.id} clip={clip} session={session} busy={busy} onReview={onReview} onDelete={onDelete} />
       ))}
     </section>
   );
