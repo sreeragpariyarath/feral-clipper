@@ -178,9 +178,7 @@ Built ourselves with Tailwind (no code copied from SupoClip — its license limi
 | 5 — Campaigns and posting | **Done** (2026-11-26). Campaign on jobs (logo, caption, brief), posting kit, Posted page with payout. |
 | 6 — Reliability | **Done** (2026-11-26). Readable step errors with hints, retry from the failed step, disk checks, video delete, DB backup. |
 
-Stray files proposed for removal (not deleted yet): `backups/`, `config.backup.json`, `picks.backup.json`,
-`gta6_knowledge.2026-11-20.bak.json`, `update_raw.txt`, `cam_test.jpg`, `finish_restructure.bat`, `setup_git.bat`,
-and the old review server `review_ui/server.py` + `review_ui/jobs.py` (replaced by `backend/`).
+Cleanup (2026-11-26): removed the old copies (`config.backup.json`, `picks.backup.json`, `gta6_knowledge.*.bak.json`, `backups/*.bak.*`), one-time scripts (`finish_restructure.bat`, `setup_git.bat`), test leftovers (`cam_test.jpg`, `update_raw.txt`, test streams and videos) and the old review server. Fixed `.gitignore`: `*.ts` (video) was also hiding the frontend's TypeScript files.
 
 ### Phase 0 — Foundation and cleanup
 - New layout: `backend/` (FastAPI app), `frontend/` (move `review_ui/frontend`), keep `clipper/` as the pipeline package.

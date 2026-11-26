@@ -8,11 +8,13 @@ backups/
 *.mp4
 *.mkv
 *.webm
+# .ts = MPEG transport-stream video; the frontend's TypeScript files must still be committed
 *.ts
+!frontend/**/*.ts
 *.wav
 *.mp3
 *.bak*
-picks.backup
+.pytest_cache/
 .env
 *.tgz
 TwitchDownloaderCLI.exe
@@ -21,4 +23,3 @@ models/
 *.safetensors
 *.onnx
 *.npy
-cam_test.jpg
