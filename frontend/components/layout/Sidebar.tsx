@@ -7,8 +7,9 @@ import { cn } from "../ui/cn";
 import { ThemeToggle } from "./ThemeToggle";
 import { NAV, isActive } from "./nav";
 
-export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
-  const pathname = usePathname();
+export function Sidebar({ collapsed, onToggle, pending }: { collapsed: boolean; onToggle: () => void; pending: string | null }) {
+  const current = usePathname();
+  const pathname = pending ?? current;          // highlight the clicked item at once
   return (
     <aside aria-label="Sidebar" className={cn(
       "sticky top-0 hidden h-dvh shrink-0 flex-col border-r bg-sidebar p-3 transition-[width] md:flex",
@@ -49,8 +50,9 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 }
 
 /** Bottom tab bar for narrow screens. */
-export function MobileNav() {
-  const pathname = usePathname();
+export function MobileNav({ pending }: { pending: string | null }) {
+  const current = usePathname();
+  const pathname = pending ?? current;
   return (
     <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-sidebar/95 py-1 backdrop-blur md:hidden">
       {NAV.slice(0, 5).map(({ href, label, icon: Icon }) => (

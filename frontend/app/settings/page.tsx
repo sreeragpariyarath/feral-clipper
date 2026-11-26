@@ -4,12 +4,13 @@ import { CheckCircle2, XCircle } from "lucide-react";
 import { BackupCard } from "@/components/settings/BackupCard";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/States";
 import { useHealth, useSettings } from "@/lib/queries";
 
 const KEY_NAMES: Record<string, string> = { anthropic: "ANTHROPIC_API_KEY (Claude judge)", gemini: "GEMINI_API_KEY (later)" };
 
 export default function SettingsPage() {
-  const { data: settings } = useSettings();
+  const { data: settings, isLoading } = useSettings();
   const { data: health } = useHealth();
 
   return (
@@ -19,6 +20,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader title="API keys" subtitle="Edit .env, then restart the API window" />
           <ul className="grid gap-3 p-4 text-sm">
+            {isLoading && <li><Skeleton className="h-12" /></li>}
             {Object.entries(settings?.keys ?? {}).map(([k, set]) => (
               <li key={k} className="flex items-center justify-between gap-3">
                 <span>{KEY_NAMES[k] ?? k}</span>

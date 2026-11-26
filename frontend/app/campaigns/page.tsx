@@ -7,13 +7,14 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ListSkeleton } from "@/components/ui/PageSkeleton";
 import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { localTime } from "@/lib/format";
 import { useCampaigns, useDeleteCampaign } from "@/lib/queries";
 
 export default function CampaignsPage() {
-  const { data: campaigns = [], error } = useCampaigns();
+  const { data: campaigns = [], isLoading, error } = useCampaigns();
   const remove = useDeleteCampaign();
   const toast = useToast();
   const [editing, setEditing] = useState<number | "new" | null>(null);
@@ -30,6 +31,7 @@ export default function CampaignsPage() {
         <Card className="mb-4"><CardHeader title="New campaign" /><CampaignForm onDone={() => setEditing(null)} /></Card>
       )}
 
+      {isLoading && <ListSkeleton count={2} />}
       <div className="grid gap-3">
         {campaigns.map((c) => editing === c.id ? (
           <Card key={c.id}><CardHeader title={`Edit ${c.name}`} /><CampaignForm campaign={c} onDone={() => setEditing(null)} /></Card>
@@ -59,7 +61,7 @@ export default function CampaignsPage() {
             </div>
           </Card>
         ))}
-        {!campaigns.length && editing === null && <EmptyState icon={<Megaphone />} title="No campaigns yet">Add the AsianJeff campaign to keep its rules here.</EmptyState>}
+        {!isLoading && !campaigns.length && editing === null && <EmptyState icon={<Megaphone />} title="No campaigns yet">Add a campaign to keep its rules, logo and payout here.</EmptyState>}
       </div>
     </>
   );
