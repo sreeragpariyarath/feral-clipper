@@ -1,7 +1,7 @@
 {
   "quality": "1080p60,1080p,720p60,720p,best",
   "keep_hours": 6,
-  "facecam": {"x": 0.0, "y": 0.0, "w": 0.34, "h": 0.4},
+  "facecam": null,
   "gameplay": {
     "x": 0.0,
     "y": 0.0,
@@ -14,7 +14,10 @@
   "whisper_compute": "float16",
   "encoder": "h264_nvenc",
   "anthropic_model": "claude-haiku-5-5",
-  "campaign_brief": "KreekCraft GTA 6 clipping campaign (ClipLaunch). Only KreekCraft's own GTA 6 livestreams/replays. Wanted: his funny reactions, crazy GTA 6 moments, fails, unexpected discoveries. Strong hook in the first 1-2 seconds, properly edited, no raw screen recording. Never misrepresent what happened: no fake reactions, fabricated context or misleading titles. No links or URLs anywhere in the caption or title.",
+  "judge_provider": "claude",
+  "gemini_model": "",
+  "ollama_model": "",
+  "campaign_brief": null,
   "twitch_downloader_cli": "TwitchDownloaderCLI",
   "detect": {
     "threshold": 0.45,
@@ -23,10 +26,6 @@
   },
   "layout": "punch",
   "vod_limit_rate": "20M",
-  "campaign_overlay": {
-    "file": "kreek_overlay.png",
-    "w": 520,
-    "y": 28
-  },
-  "campaign_caption": "Watch KreekCraft on YouTube and Twitch! 🔴 #GTA6 #KreekCraft #GrandTheftAutoVI"
+  "campaign_overlay": null,
+  "campaign_caption": null
 }
