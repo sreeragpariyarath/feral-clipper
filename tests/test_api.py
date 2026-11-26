@@ -45,3 +45,16 @@ def test_compat_routes_still_work(client):
     assert client.get(f"/api/jobs/{r.json()['id']}").status_code == 200
     assert client.get("/api/sessions").status_code == 200
     assert client.get("/media/../x/clip.mp4").status_code in (400, 404)
+
+
+def test_clip_details(client, session, vod_dir):
+    import json
+    from backend.models import Clip
+    folder = vod_dir / "s2" / "clips" / "903"
+    folder.mkdir(parents=True)
+    (folder / "judge.json").write_text(json.dumps({"title": "T", "usage": {"in": 1}}))
+    (folder / "transcript.json").write_text(json.dumps({"words": [{"w": "hi", "s": 0, "e": 0.5}]}))
+    c = Clip(stream_id="s2", clip_no="903", status="ready")
+    session.add(c); session.commit(); session.refresh(c)
+    d = client.get(f"/api/v1/clips/{c.id}/details").json()
+    assert d["judge"] == {"title": "T"} and d["words"][0]["w"] == "hi" and d["score"] is None

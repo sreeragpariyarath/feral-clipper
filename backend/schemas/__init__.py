@@ -1,11 +1,11 @@
 """Typed request and response shapes for the API."""
 from .campaign import CampaignIn, CampaignOut
-from .clip import ClipOut, ClipPatch
+from .clip import ClipDetailOut, ClipOut, ClipPatch
 from .common import EventOut, HealthOut, SettingsIn, SettingsOut
 from .job import JobCreate, JobOut, ProgressOut, StepOut
 from .stream import MonitorSheetOut, StreamOut
 
 __all__ = [
-    "CampaignIn", "CampaignOut", "ClipOut", "ClipPatch", "EventOut", "HealthOut", "SettingsIn", "SettingsOut",
+    "CampaignIn", "ClipDetailOut", "CampaignOut", "ClipOut", "ClipPatch", "EventOut", "HealthOut", "SettingsIn", "SettingsOut",
     "JobCreate", "JobOut", "ProgressOut", "StepOut", "MonitorSheetOut", "StreamOut",
 ]

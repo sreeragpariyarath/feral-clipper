@@ -1,53 +1,64 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutGrid, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { Button } from "../ui/Button";
+import { usePathname } from "next/navigation";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { cn } from "../ui/cn";
+import { ThemeToggle } from "./ThemeToggle";
+import { NAV, isActive } from "./nav";
 
-type Props = {
-  collapsed: boolean;
-  onToggle: () => void;
-};
-
-export function Sidebar({ collapsed, onToggle }: Props) {
+export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const pathname = usePathname();
   return (
-    <aside aria-label="Sidebar" className={"sticky top-0 flex h-dvh shrink-0 flex-col gap-4 border-r bg-sidebar p-2 sm:p-3 " + (collapsed ? "w-14 sm:w-16" : "w-14 sm:w-56")}>
-      <div className="flex flex-col items-center gap-2 sm:items-start">
+    <aside aria-label="Sidebar" className={cn(
+      "sticky top-0 hidden h-dvh shrink-0 flex-col border-r bg-sidebar p-3 transition-[width] md:flex",
+      collapsed ? "w-16" : "w-56",
+    )}>
+      <div className={cn("mb-6 flex items-center gap-2", collapsed && "justify-center")}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Feral Streams" width={44} height={44} className="size-9 object-contain sm:size-11" />
-        <Button
-          variant="ghost"
-          aria-expanded={!collapsed}
-          aria-controls="sidebar-navigation"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          onClick={onToggle}
-          className="hidden sm:block"
-        >
-          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-        </Button>
+        <img src="/logo.png" alt="" width={36} height={36} className="size-9 object-contain" />
+        {!collapsed && <span className="font-bold leading-tight">Feral<br /><span className="text-xs font-medium text-muted-foreground">Clipper</span></span>}
       </div>
 
-      <nav id="sidebar-navigation" aria-label="Main navigation">
-        <Link
-          href="/"
-          aria-current="page"
-          aria-label="Library"
-          title="Library"
-          className="flex items-center gap-3 rounded-xl bg-sidebar-accent p-2.5 font-semibold text-sidebar-accent-foreground"
-        >
-          <LayoutGrid size={18} className="shrink-0" />
-          {!collapsed && <span className="hidden sm:inline">Library</span>}
-        </Link>
-        <Link
-          href="/jobs"
-          aria-label="New stream"
-          title="New stream"
-          className="mt-1 flex items-center gap-3 rounded-xl p-2.5 font-semibold hover:bg-sidebar-accent"
-        >
-          <Plus size={18} className="shrink-0" />
-          {!collapsed && <span className="hidden sm:inline">New stream</span>}
-        </Link>
+      <nav aria-label="Main" className="grid gap-1">
+        {NAV.map(({ href, label, icon: Icon }) => {
+          const active = isActive(pathname, href);
+          return (
+            <Link key={href} href={href} title={label} aria-current={active ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition",
+                active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                collapsed && "justify-center",
+              )}>
+              <Icon size={18} className="shrink-0" />
+              {!collapsed && label}
+            </Link>
+          );
+        })}
       </nav>
+
+      <div className={cn("mt-auto flex items-center gap-1", collapsed ? "flex-col" : "justify-between")}>
+        <ThemeToggle />
+        <button onClick={onToggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-sidebar-accent">
+          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+        </button>
+      </div>
     </aside>
+  );
+}
+
+/** Bottom tab bar for narrow screens. */
+export function MobileNav() {
+  const pathname = usePathname();
+  return (
+    <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-sidebar/95 py-1 backdrop-blur md:hidden">
+      {NAV.slice(0, 5).map(({ href, label, icon: Icon }) => (
+        <Link key={href} href={href} aria-label={label}
+          className={cn("grid place-items-center gap-0.5 px-2 py-1 text-[10px]", isActive(pathname, href) ? "text-primary" : "text-muted-foreground")}>
+          <Icon size={18} />{label}
+        </Link>
+      ))}
+    </nav>
   );
 }

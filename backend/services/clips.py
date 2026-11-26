@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 from ..config import VOD_DIR
 from ..events import emit
 from ..models import Clip, now
-from ..schemas import ClipOut, ClipPatch
+from ..schemas import ClipDetailOut, ClipOut, ClipPatch
 from .errors import Conflict, NotFound
 
 
@@ -113,3 +113,21 @@ def restore(session: Session, clip: Clip) -> Clip:
     session.commit()
     session.refresh(clip)
     return clip
+
+
+def _read(path: Path, default):
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else default
+
+
+def details(clip: Clip) -> ClipDetailOut:
+    """Judge notes, word timings, the clip's row of the score sheet and its frame strip."""
+    folder = folder_of(clip)
+    judge = _read(folder / "judge.json", {})
+    judge.pop("usage", None)
+    sheet = _read(VOD_DIR / clip.stream_id / "auto" / "scores.json", {})
+    row = next((r for r in sheet.get("all", []) if r.get("no") == clip.clip_no), None)
+    strip = VOD_DIR / clip.stream_id / "auto" / "frames" / clip.clip_no / "strip.jpg"
+    return ClipDetailOut(
+        clip=to_out(clip), judge=judge, words=_read(folder / "transcript.json", {}).get("words", []),
+        score=row, face_box=_read(folder / "face.json", {}).get("box"),
+        strip_url=f"/media/{clip.stream_id}/{clip.clip_no}/strip.jpg" if strip.is_file() else None)

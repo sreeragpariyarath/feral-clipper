@@ -108,11 +108,15 @@ def old_get_job(job_id: str, session: Session = Depends(get_session)):
 
 # ---------------------------------------------------------------- media (video seeking supported)
 @router.get("/media/{sid}/{cid}/{name}")
-def media(sid: str, cid: str, name: str):
+def media(sid: str, cid: str, name: str, download: bool = False):
     _safe(sid, cid)
-    if name not in ("clip.mp4", "thumb.jpg"):
+    if name == "strip.jpg":                       # frame strip from the visual step
+        path: Path = VOD_DIR / sid / "auto" / "frames" / cid / name
+    elif name in ("clip.mp4", "thumb.jpg"):
+        path = VOD_DIR / sid / "clips" / cid / name
+    else:
         raise HTTPException(404, "not found")
-    path: Path = VOD_DIR / sid / "clips" / cid / name
     if not path.is_file():
         raise HTTPException(404, "not found")
-    return FileResponse(path, media_type="video/mp4" if name.endswith(".mp4") else "image/jpeg")
+    return FileResponse(path, media_type="video/mp4" if name.endswith(".mp4") else "image/jpeg",
+                        filename=f"{sid}-{cid}.mp4" if name.endswith(".mp4") and download else None)

@@ -1,46 +1,43 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { Sidebar } from "../../components/layout/Sidebar";
-import { NewStreamForm } from "../../components/jobs/NewStreamForm";
-import { JobList } from "../../components/jobs/JobList";
-import type { Job } from "../../lib/jobs";
+import { ListChecks, Plus } from "lucide-react";
+import { JobCard } from "@/components/jobs/JobCard";
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
+import { Tabs } from "@/components/ui/Tabs";
+import { useJobs } from "@/lib/queries";
 
-/** New stream page: start a download, monitor or render job and watch its progress. */
-export default function NewStreamPage() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [last, setLast] = useState<Job | null>(null);
+type Filter = "all" | "active" | "done" | "failed";
+const match: Record<Filter, (s: string) => boolean> = {
+  all: () => true,
+  active: (s) => s === "queued" || s === "running",
+  done: (s) => s === "done",
+  failed: (s) => s === "failed" || s === "cancelled",
+};
 
-  function onStarted(job: Job) {
-    setLast(job);
-    setRefreshKey((k) => k + 1);
-  }
+export default function JobsPage() {
+  const { data: jobs, isLoading, error } = useJobs();
+  const [filter, setFilter] = useState<Filter>("all");
+  const shown = (jobs ?? []).filter((j) => match[filter](j.status));
+  const count = (f: Filter) => (jobs ?? []).filter((j) => match[f](j.status)).length;
 
   return (
-    <div className="flex min-h-screen w-full overflow-x-hidden bg-background text-foreground">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-      <main className="mx-auto min-w-0 w-full max-w-5xl overflow-x-hidden p-6 md:p-10">
-        <header className="mb-6 border-b pb-5">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">New stream</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Paste a Twitch VOD link. Jobs run one at a time; the progress and log show below.
-          </p>
-        </header>
-
-        <NewStreamForm onStarted={onStarted} />
-
-        {last && (
-          <p role="status" className="mt-4 text-sm text-muted-foreground">
-            Started job for {last.session} ({last.mode}). Open it in the list below for progress.
-          </p>
-        )}
-
-        <section aria-label="Jobs" className="mt-8">
-          <h2 className="mb-3 text-lg font-semibold">Jobs</h2>
-          <JobList refreshKey={refreshKey} />
-        </section>
-      </main>
-    </div>
+    <>
+      <PageHeader title="Jobs" subtitle="Every download, scan and render, newest first."
+        actions={<Link href="/new"><Button variant="primary"><Plus size={16} /> New job</Button></Link>} />
+      <div className="mb-4">
+        <Tabs<Filter> value={filter} onChange={setFilter}
+          tabs={(["all", "active", "done", "failed"] as Filter[]).map((f) => ({ value: f, label: f[0].toUpperCase() + f.slice(1), count: count(f) }))} />
+      </div>
+      <ErrorNote error={error} />
+      <div className="grid gap-2">
+        {isLoading && [0, 1, 2].map((i) => <Skeleton key={i} className="h-20" />)}
+        {shown.map((j) => <JobCard key={j.id} job={j} />)}
+        {!isLoading && !shown.length && <EmptyState icon={<ListChecks />} title="No jobs here" />}
+      </div>
+    </>
   );
 }

@@ -223,6 +223,14 @@ and the old review server `review_ui/server.py` + `review_ui/jobs.py` (replaced 
 - Live updates over SSE (no polling).
 - **Done when:** every step of a running job is visible live, and a clip can be reviewed, edited and
   downloaded without leaving the app.
+- **Status (2026-11-26): built.** TanStack Query + one SSE connection (`lib/useLiveEvents.ts`) that refreshes
+  only the affected queries. Pages: Dashboard, New job, Jobs, Job detail (12-step timeline, live %, ETA, log),
+  Clips (filters, sort, approve/reject), Clip detail (player, title/caption editor with copy, judge notes,
+  clickable transcript, score bars, frame strip, download), Streams, Campaigns (CRUD), Trash (restore),
+  Settings (key status only). Light/dark theme, collapsible sidebar, activity panel, toasts.
+  New API: `GET /api/v1/clips/{id}/details`; `/media/.../strip.jpg`; `?download=true`.
+  Not yet: Posted page (needs Phase 5 data), "delete forever" in Trash, stream data delete, bulk actions.
+  Live events connect straight to the API (port 8766): the Next dev proxy buffers streamed responses.
 
 ### Phase 4 — Clip quality
 - Hook finder from the transcript (strong words, questions, laughter / shouting tags).
