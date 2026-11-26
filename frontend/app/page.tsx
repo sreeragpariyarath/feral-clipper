@@ -8,9 +8,10 @@ import { JobCard } from "@/components/jobs/JobCard";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { ClipGridSkeleton, ListSkeleton, TilesSkeleton } from "@/components/ui/PageSkeleton";
+import { ClipGridSkeleton, JobListSkeleton, StatTileSkeleton } from "@/components/skeletons/cards";
 import { EmptyState } from "@/components/ui/States";
 import { useClips, useHealth, useJobs } from "@/lib/queries";
+import { PAGES } from "@/lib/pages";
 
 // Claude Haiku 5.5 prices per million tokens (the judge model in config.json), for a rough spend estimate.
 const USD_PER_M_IN = 0.1;
@@ -30,17 +31,24 @@ export default function Dashboard() {
 
   return (
     <>
-      <PageHeader title="Dashboard" subtitle="What's running, and what's waiting for you."
+      <PageHeader {...PAGES.dashboard}
         actions={<Link href="/new"><Button variant="primary"><Plus size={16} /> New job</Button></Link>} />
 
-      {jobsLoading || clipsLoading ? <div className="mb-6"><TilesSkeleton /></div> : (
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {jobsLoading || clipsLoading ? (
+          <>
+            <StatTileSkeleton label="Waiting for review" icon={<Clapperboard size={18} />} />
+            <StatTileSkeleton label="Jobs running" icon={<ListChecks size={18} />} />
+            <StatTileSkeleton label="Claude spend (est.)" icon={<Coins size={18} />} />
+            <StatTileSkeleton label="Free disk" icon={<HardDrive size={18} />} />
+          </>
+        ) : (<>
         <StatTile label="Waiting for review" value={waiting.length} hint={`${approved} approved so far`} icon={<Clapperboard size={18} />} href="/clips" />
         <StatTile label="Jobs running" value={active.length} hint={health?.running_job ? `job ${health.running_job} now` : "idle"} icon={<ListChecks size={18} />} href="/jobs" />
         <StatTile label="Claude spend (est.)" value={`$${spend.toFixed(2)}`} hint={`${(tokIn + tokOut).toLocaleString()} tokens`} icon={<Coins size={18} />} />
         <StatTile label="Free disk" value={health ? `${health.disk.free_gb} GB` : "—"} hint={health ? `of ${health.disk.total_gb} GB` : ""} icon={<HardDrive size={18} />} href="/streams" />
+        </>)}
       </div>
-      )}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
         <section>
@@ -48,7 +56,7 @@ export default function Dashboard() {
             <h2 className="font-semibold">Best clips to review</h2>
             <Link href="/clips" className="text-sm text-primary hover:underline">All clips</Link>
           </div>
-          {clipsLoading ? <ClipGridSkeleton count={3} /> : waiting.length
+          {clipsLoading ? <ClipGridSkeleton count={3} className="grid grid-cols-2 gap-4 sm:grid-cols-3" /> : waiting.length
             ? <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">{[...waiting].sort((a, b) => b.final_score - a.final_score).slice(0, 6).map((c) => <ClipCard key={c.id} clip={c} />)}</div>
             : <EmptyState icon={<Clapperboard />} title="All caught up">No rendered clips are waiting.</EmptyState>}
         </section>
@@ -56,7 +64,7 @@ export default function Dashboard() {
           <CardHeader title="Recent jobs" action={<Link href="/jobs" className="text-sm text-primary hover:underline">All</Link>} />
           <div className="grid gap-2 p-3">
             {jobs.slice(0, 5).map((j) => <JobCard key={j.id} job={j} />)}
-            {jobsLoading && <ListSkeleton count={3} />}
+            {jobsLoading && <JobListSkeleton />}
             {!jobsLoading && !jobs.length && <p className="p-2 text-sm text-muted-foreground">No jobs yet.</p>}
           </div>
         </Card>

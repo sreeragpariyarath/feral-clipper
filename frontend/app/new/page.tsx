@@ -1,10 +1,11 @@
 import { NewJobForm } from "@/components/jobs/NewJobForm";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { PAGES } from "@/lib/pages";
 
 export default function NewJobPage() {
   return (
     <div className="max-w-2xl">
-      <PageHeader title="New job" subtitle="Paste a Twitch VOD link or a video file path. Everything else runs on its own." />
+      <PageHeader {...PAGES.newJob} />
       <NewJobForm />
     </div>
   );

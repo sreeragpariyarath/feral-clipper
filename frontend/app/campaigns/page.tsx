@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { ListSkeleton } from "@/components/ui/PageSkeleton";
+import { CampaignListSkeleton } from "@/components/skeletons/cards";
 import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { localTime } from "@/lib/format";
 import { useCampaigns, useDeleteCampaign } from "@/lib/queries";
+import { PAGES } from "@/lib/pages";
 
 export default function CampaignsPage() {
   const { data: campaigns = [], isLoading, error } = useCampaigns();
@@ -23,7 +24,7 @@ export default function CampaignsPage() {
 
   return (
     <>
-      <PageHeader title="Campaigns" subtitle="Clipping deals: rules for the judge, payout, and end date."
+      <PageHeader {...PAGES.campaigns}
         actions={editing === null && <Button variant="primary" onClick={() => setEditing("new")}><Plus size={16} /> Add campaign</Button>} />
       <ErrorNote error={error} />
 
@@ -31,7 +32,7 @@ export default function CampaignsPage() {
         <Card className="mb-4"><CardHeader title="New campaign" /><CampaignForm onDone={() => setEditing(null)} /></Card>
       )}
 
-      {isLoading && <ListSkeleton count={2} />}
+      {isLoading && <CampaignListSkeleton />}
       <div className="grid gap-3">
         {campaigns.map((c) => editing === c.id ? (
           <Card key={c.id}><CardHeader title={`Edit ${c.name}`} /><CampaignForm campaign={c} onDone={() => setEditing(null)} /></Card>

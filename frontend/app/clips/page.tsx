@@ -6,9 +6,13 @@ import { Clapperboard } from "lucide-react";
 import { ClipCard } from "@/components/clips/ClipCard";
 import { ClipFilters, type ClipSort, type ClipView } from "@/components/clips/ClipFilters";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { useClips } from "@/lib/queries";
 import type { Clip } from "@/lib/types";
+import { PAGES } from "@/lib/pages";
+import { times } from "@/components/skeletons/bones";
+import { ClipCardSkeleton } from "@/components/skeletons/cards";
+import { PageSkeleton } from "@/components/skeletons/PageSkeleton";
 
 const inView: Record<ClipView, (c: Clip) => boolean> = {
   ready: (c) => c.has_video && c.decision === "pending",
@@ -41,11 +45,11 @@ function Library() {
 
   return (
     <>
-      <PageHeader title="Clips" subtitle="Watch, approve or reject, then download what you'll post." />
-      <ClipFilters stream={stream} onStream={setStream} view={view} onView={setView} sort={sort} onSort={setSort} counts={counts} />
+      <PageHeader {...PAGES.clips} />
+      <ClipFilters stream={stream} onStream={setStream} view={view} onView={setView} sort={sort} onSort={setSort} counts={isLoading ? undefined : counts} />
       <ErrorNote error={error} />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {isLoading && [0, 1, 2, 3].map((i) => <Skeleton key={i} className="aspect-[9/16]" />)}
+        {isLoading && times(8).map((i) => <ClipCardSkeleton key={i} />)}
         {shown.map((c) => <ClipCard key={c.id} clip={c} />)}
       </div>
       {!isLoading && !shown.length && (
@@ -58,5 +62,5 @@ function Library() {
 }
 
 export default function ClipsPage() {
-  return <Suspense><Library /></Suspense>;
+  return <Suspense fallback={<PageSkeleton path="/clips" />}><Library /></Suspense>;
 }

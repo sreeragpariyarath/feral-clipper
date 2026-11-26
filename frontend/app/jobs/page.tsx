@@ -6,9 +6,11 @@ import { ListChecks, Plus } from "lucide-react";
 import { JobCard } from "@/components/jobs/JobCard";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { Tabs } from "@/components/ui/Tabs";
 import { useJobs } from "@/lib/queries";
+import { PAGES } from "@/lib/pages";
+import { JobListSkeleton } from "@/components/skeletons/cards";
 
 type Filter = "all" | "active" | "done" | "failed";
 const match: Record<Filter, (s: string) => boolean> = {
@@ -26,7 +28,7 @@ export default function JobsPage() {
 
   return (
     <>
-      <PageHeader title="Jobs" subtitle="Every download, scan and render, newest first."
+      <PageHeader {...PAGES.jobs}
         actions={<Link href="/new"><Button variant="primary"><Plus size={16} /> New job</Button></Link>} />
       <div className="mb-4">
         <Tabs<Filter> value={filter} onChange={setFilter}
@@ -34,7 +36,7 @@ export default function JobsPage() {
       </div>
       <ErrorNote error={error} />
       <div className="grid gap-2">
-        {isLoading && [0, 1, 2].map((i) => <Skeleton key={i} className="h-20" />)}
+        {isLoading && <JobListSkeleton count={4} />}
         {shown.map((j) => <JobCard key={j.id} job={j} />)}
         {!isLoading && !shown.length && <EmptyState icon={<ListChecks />} title="No jobs here" />}
       </div>

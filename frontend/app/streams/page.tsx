@@ -5,9 +5,11 @@ import { Film } from "lucide-react";
 import { DeleteVideoButton } from "@/components/streams/DeleteVideoButton";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { clock, localTime, streamName } from "@/lib/format";
 import { useStreams } from "@/lib/queries";
+import { PAGES } from "@/lib/pages";
+import { StreamTableSkeleton } from "@/components/skeletons/StreamTableSkeleton";
 
 export default function StreamsPage() {
   const { data: streams = [], isLoading, error } = useStreams();
@@ -15,9 +17,9 @@ export default function StreamsPage() {
 
   return (
     <>
-      <PageHeader title="Streams" subtitle={`Every downloaded stream and the clips made from it · ${total.toFixed(1)} GB on disk`} />
+      <PageHeader title={PAGES.streams.title} subtitle={isLoading ? PAGES.streams.subtitle : `${PAGES.streams.subtitle} · ${total.toFixed(1)} GB on disk`} />
       <ErrorNote error={error} />
-      {isLoading && <Skeleton className="h-48" />}
+      {isLoading && <StreamTableSkeleton />}
       {!isLoading && !streams.length && <EmptyState icon={<Film />} title="No streams yet" />}
       {!!streams.length && (
         <Card className="overflow-x-auto">

@@ -6,7 +6,7 @@ import { usePostingKit } from "@/lib/queries";
 import type { Clip, Platform } from "@/lib/types";
 import { Button } from "../ui/Button";
 import { Card, CardHeader } from "../ui/Card";
-import { Skeleton } from "../ui/States";
+import { PostingKitSkeleton } from "../skeletons/ClipDetailSkeleton";
 import { Tabs } from "../ui/Tabs";
 import { useToast } from "../ui/Toast";
 import { MarkPosted } from "./MarkPosted";
@@ -19,7 +19,7 @@ export function PostingKit({ clip }: { clip: Clip }) {
   const toast = useToast();
   const [platform, setPlatform] = useState<Platform>("youtube");
 
-  if (isLoading) return <Skeleton className="h-64" />;
+  if (isLoading) return <PostingKitSkeleton />;
   if (!kit) return null;
   const k = kit.platforms.find((p) => p.platform === platform) ?? kit.platforms[0];
 

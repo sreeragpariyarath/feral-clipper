@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { PanelRightOpen } from "lucide-react";
 import { useLiveEvents } from "@/lib/useLiveEvents";
 import { usePendingPath } from "@/lib/usePendingPath";
-import { PageSkeleton } from "../ui/PageSkeleton";
+import { PageSkeleton } from "../skeletons/PageSkeleton";
 import { ActivityPanel } from "./ActivityPanel";
 import { DiskBanner } from "./DiskBanner";
 import { MobileNav, Sidebar } from "./Sidebar";

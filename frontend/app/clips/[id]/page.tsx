@@ -14,11 +14,12 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { downloadUrl } from "@/lib/api";
 import { clock, streamName } from "@/lib/format";
 import { useClipDetails, useTrashClip } from "@/lib/queries";
+import { ClipDetailSkeleton } from "@/components/skeletons/ClipDetailSkeleton";
 
 export default function ClipPage({ params }: { params: Promise<{ id: string }> }) {
   const id = Number(use(params).id);
@@ -29,7 +30,7 @@ export default function ClipPage({ params }: { params: Promise<{ id: string }> }
   const video = useRef<HTMLVideoElement>(null);
   const [time, setTime] = useState(0);
 
-  if (isLoading) return <Skeleton className="h-[32rem]" />;
+  if (isLoading) return <ClipDetailSkeleton />;
   if (!data) return <ErrorNote error={error ?? "Clip not found"} />;
 
   const { clip, judge, words, score } = data;

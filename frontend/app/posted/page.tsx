@@ -9,11 +9,13 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { ago, localTime } from "@/lib/format";
 import { useDeletePost, usePosts } from "@/lib/queries";
 import type { Post } from "@/lib/types";
+import { PAGES } from "@/lib/pages";
+import { PostListSkeleton } from "@/components/skeletons/cards";
 
 const money = (v: number) => v.toLocaleString(undefined, { style: "currency", currency: "USD" });
 
@@ -37,7 +39,7 @@ export default function PostedPage() {
 
   return (
     <>
-      <PageHeader title="Posted" subtitle="Where each clip went. Type in the views from each platform; payout uses the campaign's rate." />
+      <PageHeader {...PAGES.posted} />
       <ErrorNote error={error} />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-3">
@@ -54,7 +56,7 @@ export default function PostedPage() {
         </div>
       )}
 
-      {isLoading && <Skeleton className="h-40" />}
+      {isLoading && <PostListSkeleton />}
       {!isLoading && !posts.length && (
         <EmptyState icon={<Send />} title="Nothing posted yet">Open a clip, copy its posting kit, upload it, then press Mark as posted.</EmptyState>
       )}

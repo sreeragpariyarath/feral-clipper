@@ -15,7 +15,7 @@ type Props = {
   onView: (v: ClipView) => void;
   sort: ClipSort;
   onSort: (s: ClipSort) => void;
-  counts: Record<ClipView, number>;
+  counts?: Record<ClipView, number>;          // unknown while loading
 };
 
 export function ClipFilters({ stream, onStream, view, onView, sort, onSort, counts }: Props) {
@@ -24,7 +24,7 @@ export function ClipFilters({ stream, onStream, view, onView, sort, onSort, coun
     <div className="mb-5 flex flex-wrap items-center gap-3">
       <Tabs<ClipView> value={view} onChange={onView}
         tabs={(["ready", "approved", "rejected", "skipped", "all"] as ClipView[]).map((v) => ({
-          value: v, label: v[0].toUpperCase() + v.slice(1), count: counts[v],
+          value: v, label: v[0].toUpperCase() + v.slice(1), count: counts?.[v],
         }))} />
       <Select aria-label="Stream" value={stream} onChange={(e) => onStream(e.target.value)} className="w-auto min-w-48">
         <option value="">All streams</option>
