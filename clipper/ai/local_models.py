@@ -93,20 +93,40 @@ class Clip:
         return np.concatenate(out) if out else np.zeros((0, 512), np.float32)
 
     def score(self, emb):
-        """Per frame: action / boring / unsafe probability and the best matching prompt."""
+        """Per frame: action / boring / unsafe probability, the best matching prompt, and `margin`.
+
+        The probabilities sum softmax over each prompt group, so the group with more prompts (action)
+        wins almost every gameplay frame (~0.99). `margin` compares only the BEST action prompt with the
+        BEST boring prompt (raw cosine similarity), which does not depend on how many prompts a group has.
+        It is a raw number; compare it between frames of the same stream, not against a fixed threshold.
+        """
         text = self.text.float().cpu().numpy()
-        logits = 100.0 * emb @ text.T
+        sims = emb @ text.T
+        logits = 100.0 * sims
         logits -= logits.max(axis=1, keepdims=True)
         p = np.exp(logits)
         p /= p.sum(axis=1, keepdims=True)
         a, b = self.n_act, self.n_act + self.n_bor
         res = []
-        for row in p:
+        for row, sim in zip(p, sims):
             best = int(row.argmax())
             res.append({"action": float(row[:a].sum()), "boring": float(row[a:b].sum()),
                         "unsafe": float(row[b:].sum()), "best": self.prompts[best],
-                        "best_kind": "action" if best < a else "boring" if best < b else "unsafe"})
+                        "best_kind": "action" if best < a else "boring" if best < b else "unsafe",
+                        "margin": float(sim[:a].max() - sim[a:b].max()),
+                        "unsafe_margin": float(sim[b:].max() - sim[:b].max())})
         return res
+
+
+def scene_change(emb):
+    """Mean cosine distance between consecutive frames (0 = same picture, ~0.3+ = a new scene).
+
+    A camera pan over the same street keeps the embedding close; a crash, an explosion or a new
+    location moves it. This is the "real action" signal the per-pixel picture change cannot give.
+    """
+    if len(emb) < 2:
+        return 0.0
+    return float(np.mean(1.0 - np.sum(emb[1:] * emb[:-1], axis=1)))
 
 
 def novelty(emb, times, min_dt=120.0, memory=None):

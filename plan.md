@@ -240,6 +240,21 @@ and the old review server `review_ui/server.py` + `review_ui/jobs.py` (replaced 
 - Judge provider setting: Claude → Gemini → local model (Ollama), same prompt and output format.
 - Learn from approve / reject (adjust score weights from your decisions).
 - **Done when:** in a test stream, at least half of the top 10 picks are clips you would post.
+- **Status (2026-11-26): built; the "done when" needs your review of the 4 ready AsianJeff clips.**
+  - Action: CLIP group-softmax saturated (~0.99 for everything). Now the best-action vs best-boring margin plus
+    frame-to-frame scene change, ranked within the stream (`clipper/detect/quality.py`): range 0.17-0.90.
+  - Payoff: tested a loudness payoff on the last third of the window. On AsianJeff it pointed the wrong way
+    (Claude's accepted comedy clips scored lowest) and the judge cuts inside the window anyway. So loudness
+    payoff is info only; the judge must name `payoff_text` and is rejected without one.
+  - Judge now sees what is on screen (`visual_scan` from the visual step). Re-judge of the top 10:
+    3 -> 4 accepted (912 was rejected only for missing picture context). Frame labels are hints, not events.
+  - Face: one frame per second, 30 % tiles (BlazeFace misses small faces in bigger tiles), merge duplicates,
+    snap the crop to the webcam overlay's border, stream-wide fallback. AsianJeff: 1/3 -> 3/3 clips with the
+    face, 100 % of seconds; crop = webcam only (no gameplay, no overlay text).
+  - Judge provider switch: `judge_provider` claude | gemini | ollama (`clipper/ai/providers.py`), same prompt.
+    Gemini and Ollama are written but not run yet (no key / no local server).
+  - Not done: learning weights from approve/reject (needs more decisions first); a crop that follows a webcam
+    that moves mid-clip (tracked and flagged as `moving`, not followed).
 
 ### Phase 5 — Campaigns and posting
 - Campaign records with rules, logo, caption, platforms, payout, end date.

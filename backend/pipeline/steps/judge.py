@@ -8,6 +8,7 @@ from ._common import window_words
 
 def judge(ctx: Ctx) -> dict:
     """Claude rates each picked candidate and writes the title and hook. Skipped clips are marked."""
+    from clipper.ai.judge import has_payoff
     from clipper.ai.judge import judge as run_judge
     sheet = ctx.read("scores.json") or {}
     words = (ctx.read("transcript.json") or {}).get("words", [])
@@ -21,7 +22,8 @@ def judge(ctx: Ctx) -> dict:
         win_words = window_words(words, r["start"], r["end"])
         cand = {"id": int(r["no"]), "peak_t": r["peak"], "win_start": r["start"], "win_end": r["end"],
                 "h_score": r["final"], "signals": {"monitor": True, "hook": r["hook"].get("hook_line", "")},
-                "chat_top": {}, "chat_samples": []}
+                "chat_top": {}, "chat_samples": [],
+                "scan": r.get("visual", {}).get("seen") or None}
         write_json(clip_dir / "candidate.json", cand)
         write_json(clip_dir / "transcript.json", {"words": win_words})
         if (clip_dir / "judge.json").exists():
@@ -35,6 +37,9 @@ def judge(ctx: Ctx) -> dict:
         tokens_out += usage.get("out", 0)
         source = j.get("source", source)
         judged += 1
+        if not has_payoff(j):
+            j["violations"] = [*j.get("violations", []), "no payoff at the end"]
+            write_json(clip_dir / "judge.json", j)
         if (not j.get("standalone", True)) or j.get("violations") or j["final_score"] < ctx.cfg["decide"]["render_min"]:
             write_json(clip_dir / "status.json", {"status": "skipped", "final": j["final_score"]})
             rejected += 1

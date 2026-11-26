@@ -60,7 +60,7 @@ def _resolve_source(body: JobCreate) -> tuple[str, str, dict]:
 # ---------------------------------------------------------------- actions
 def create(session: Session, body: JobCreate, has_key: bool) -> Job:
     if body.kind == "render" and not has_key:
-        raise InvalidInput("render needs ANTHROPIC_API_KEY in .env")
+        raise InvalidInput("render needs the judge: set judge_provider in config.json and its key in .env")
     stream_id, url, extra = _resolve_source(body)
     # job and steps are written in one transaction: the worker never sees a job without steps
     job = Job(kind=body.kind, source_url=url, stream_id=stream_id, params={"top": body.top, **extra},

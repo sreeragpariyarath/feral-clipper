@@ -12,7 +12,7 @@ from sqlmodel import Session, select
 
 from ..schemas import ClipPatch, JobCreate
 from ..services import clips as clips_svc, jobs as jobs_svc, streams as streams_svc
-from ..config import VOD_DIR, key_status
+from ..config import VOD_DIR, judge_ready
 from ..db import get_session
 from ..models import Clip, Job, Stream
 
@@ -90,7 +90,7 @@ class OldJobIn(BaseModel):
 @router.post("/api/jobs", status_code=202)
 def old_create_job(body: OldJobIn, session: Session = Depends(get_session)):
     req = JobCreate(kind=body.mode, url=body.url, path=body.path, top=body.top)
-    job = jobs_svc.create(session, req, key_status()["anthropic"])
+    job = jobs_svc.create(session, req, judge_ready())
     return _old_job(session, job, with_log=False)
 
 

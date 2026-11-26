@@ -11,9 +11,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/States";
 import { useClips, useHealth, useJobs } from "@/lib/queries";
 
-// Haiku-class pricing per million tokens, for a rough spend estimate shown next to the token count.
-const USD_PER_M_IN = 1;
-const USD_PER_M_OUT = 5;
+// Claude Haiku 5.5 prices per million tokens (the judge model in config.json), for a rough spend estimate.
+const USD_PER_M_IN = 0.1;
+const USD_PER_M_OUT = 0.5;
 
 export default function Dashboard() {
   const { data: health } = useHealth();

@@ -39,3 +39,10 @@ def key_status() -> dict:
 
 
 load_env()
+
+
+def judge_ready() -> bool:
+    """True when the judge provider chosen in config.json can run (its key is set, or it is local)."""
+    from clipper.ai.providers import available
+    from clipper.common import load_config
+    return available(load_config())
