@@ -4,7 +4,7 @@ from sqlmodel import Session
 
 from ...db import get_session
 from ...importer import sync_all
-from ...schemas import EventOut, HealthOut, SettingsIn, SettingsOut
+from ...schemas import BackupOut, EventOut, HealthOut, SettingsIn, SettingsOut
 from ...services import system
 
 router = APIRouter(tags=["system"])
@@ -29,6 +29,17 @@ def put_settings(body: SettingsIn, session: Session = Depends(get_session)) -> S
 def sync(session: Session = Depends(get_session)) -> dict[str, int]:
     """Re-read every stream folder into the database."""
     return {"streams": sync_all(session)}
+
+
+@router.get("/backups", response_model=list[BackupOut])
+def list_backups() -> list[BackupOut]:
+    return system.backups()
+
+
+@router.post("/backups", status_code=201, response_model=BackupOut)
+def make_backup() -> BackupOut:
+    """Copy data/feral.db into backups/ (safe while jobs run)."""
+    return system.backup()
 
 
 @router.get("/activity", response_model=list[EventOut])

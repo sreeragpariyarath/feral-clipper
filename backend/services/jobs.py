@@ -153,7 +153,7 @@ def retry(session: Session, job: Job) -> Job:
             s.status, s.progress, s.message, s.eta = "pending", None, "", ""
             s.started_at = s.finished_at = None
             session.add(s)
-    job.status, job.error, job.cancel_requested, job.finished_at = "queued", "", False, None
+    job.status, job.error, job.error_hint, job.cancel_requested, job.finished_at = "queued", "", "", False, None
     session.add(job)
     emit(session, "job", f"Job {job.id} queued again", job_id=job.id, data={"status": "queued"}, commit=False)
     session.commit()
@@ -184,7 +184,7 @@ def to_out(session: Session, job: Job, with_log: bool = False) -> JobOut:
         params={k: v for k, v in params.items() if k != "results"},
         results=params.get("results", {}),
         tokens={"in": params.get("tokens_in", 0), "out": params.get("tokens_out", 0)},
-        status=job.status, current_step=job.current_step, error=job.error,
+        status=job.status, current_step=job.current_step, error=job.error, error_hint=job.error_hint,
         cancel_requested=job.cancel_requested, created_at=job.created_at, started_at=job.started_at,
         finished_at=job.finished_at, progress=progress,
         steps=[StepOut.model_validate(s, from_attributes=True) for s in steps],

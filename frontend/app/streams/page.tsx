@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Film } from "lucide-react";
+import { DeleteVideoButton } from "@/components/streams/DeleteVideoButton";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
@@ -30,6 +31,7 @@ export default function StreamsPage() {
                 <th className="px-4 py-3 text-right font-medium">Approved</th>
                 <th className="px-4 py-3 text-right font-medium">Size</th>
                 <th className="px-4 py-3 font-medium">Updated</th>
+                <th className="px-4 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
@@ -45,6 +47,7 @@ export default function StreamsPage() {
                   <td className="px-4 py-3 text-right tabular-nums">{s.approved}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{s.size_gb.toFixed(1)} GB</td>
                   <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{localTime(s.updated_at)}</td>
+                  <td className="px-4 py-3 text-right"><DeleteVideoButton stream={s} /></td>
                 </tr>
               ))}
             </tbody>

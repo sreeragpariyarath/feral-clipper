@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, XCircle } from "lucide-react";
+import { BackupCard } from "@/components/settings/BackupCard";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useHealth, useSettings } from "@/lib/queries";
@@ -36,6 +37,7 @@ export default function SettingsPage() {
             <div className="flex justify-between"><dt className="text-muted-foreground">Pipeline settings</dt><dd><code>config.json</code></dd></div>
           </dl>
         </Card>
+        <BackupCard />
       </div>
     </>
   );

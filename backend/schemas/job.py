@@ -50,6 +50,7 @@ class JobOut(BaseModel):
     status: JobStatus
     current_step: str
     error: str
+    error_hint: str = ""
     cancel_requested: bool
     created_at: datetime | None
     started_at: datetime | None

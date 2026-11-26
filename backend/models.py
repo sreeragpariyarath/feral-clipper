@@ -32,7 +32,8 @@ class Job(SQLModel, table=True):
     params: dict = Field(default_factory=dict, sa_column=Column(JSON))
     status: str = Field(default="queued", index=True)   # queued | running | done | failed | cancelled
     current_step: str = ""
-    error: str = ""
+    error: str = ""                             # one readable line: why the job stopped
+    error_hint: str = ""                        # what to do about it
     cancel_requested: bool = False
     log_file: str = ""
     created_at: datetime = Field(default_factory=now)

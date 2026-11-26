@@ -19,7 +19,7 @@ export function JobActions({ job }: { job: Job }) {
       </Button>
     );
   }
-  if (job.status === "failed" || job.status === "cancelled") {
+  if (job.status === "cancelled") {                 // failed jobs get Retry in the FailureBox, next to the reason
     return (
       <Button variant="primary" loading={retry.isPending}
         onClick={() => retry.mutate(job.id, { onSuccess: () => toast.ok("Queued again; finished steps are kept"), onError: toast.error })}>

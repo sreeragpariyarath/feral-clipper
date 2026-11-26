@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use } from "react";
 import { ArrowLeft, Clapperboard } from "lucide-react";
+import { FailureBox } from "@/components/jobs/FailureBox";
 import { JobActions } from "@/components/jobs/JobActions";
 import { LogViewer } from "@/components/jobs/LogViewer";
 import { StepTimeline } from "@/components/jobs/StepTimeline";
@@ -50,7 +51,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
         }
       />
 
-      {job.error && <div className="mb-4"><ErrorNote error={job.error} /></div>}
+      <FailureBox job={job} />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_16rem]">
         <Card>

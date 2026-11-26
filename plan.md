@@ -172,7 +172,11 @@ Built ourselves with Tailwind (no code copied from SupoClip — its license limi
 | 0 — Foundation | **Done** (2026-11-26). `backend/` created, frontend moved to `frontend/`, `start_all.bat`. Stray-file cleanup waits for review (list below). |
 | 1 — Backend core | **Done** (2026-11-26). SQLite + worker + live events + v1 API + routes for the current frontend. Tested: job survives API restart, cancel, retry, live events, video seeking. |
 | 2 — Pipeline as steps | **Built** (2026-11-26). 12 step functions in `backend/pipeline/steps.py`, each run as its own process by the worker, with progress, resume (finished outputs are skipped), URL or local file input, whole-stream transcript reused by every clip, token tracking per job. Tested end to end on a 3-minute local file. Full AsianJeff run: steps 1–8 in progress; steps 9–12 need the Anthropic key in `.env`. |
-| 3–6 | Not started. |
+| 2.5 — Clean architecture | **Done** (2026-11-26). Schemas, services, thin routes, one module per step, prefix-sum scoring, tests. |
+| 3 — Frontend v2 | **Done** (2026-11-26). TanStack Query, live events over SSE, 11 pages, design-system components. |
+| 4 — Clip quality | **Built** (2026-11-26). Action score, payoff named by the judge, judge sees frames, per-second face crop, provider switch. Waits on your review of the AsianJeff clips. |
+| 5 — Campaigns and posting | **Done** (2026-11-26). Campaign on jobs (logo, caption, brief), posting kit, Posted page with payout. |
+| 6 — Reliability | **Done** (2026-11-26). Readable step errors with hints, retry from the failed step, disk checks, video delete, DB backup. |
 
 Stray files proposed for removal (not deleted yet): `backups/`, `config.backup.json`, `picks.backup.json`,
 `gta6_knowledge.2026-11-20.bak.json`, `update_raw.txt`, `cam_test.jpg`, `finish_restructure.bat`, `setup_git.bat`,
@@ -280,6 +284,17 @@ and the old review server `review_ui/server.py` + `review_ui/jobs.py` (replaced 
 - Clear error messages in the UI, with retry of a single step.
 - Backup / export of the database.
 - **Done when:** a failed step shows why in the UI and can be retried without restarting the job.
+- **Status (2026-11-26): done.** Tested for real: a broken video made "Get the audio" fail; the job page showed
+  the reason and "The video file is damaged…", the file was replaced, Retry continued from that step and the
+  job finished (step 1 was not run again).
+  - `backend/worker/errors.py` turns the step output into one line + a hint (GPU memory, disk full, bad key,
+    no credit, rate limit, damaged video, Twitch refused, network, ffmpeg missing, missing file).
+  - A step will not start with less than 5 GB free (FERAL_MIN_FREE_GB); a banner shows below 30 GB.
+  - Streams page: permanently delete a stream's downloaded video (asks first; clips stay; never a file
+    outside the app's folder; refused while a job uses the stream).
+  - Settings: one-click database backup into backups/ (SQLite online backup, safe while jobs run).
+  - Not done: deleting the source video automatically after render (left as the manual button), and the
+    stray-file cleanup (waits for your OK).
 
 ---
 

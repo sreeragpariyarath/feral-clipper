@@ -13,6 +13,8 @@ API_PORT = int(os.environ.get("FERAL_API_PORT", "8766"))   # the frontend proxie
 
 WORKER_IDLE_SECONDS = 2.0        # how often the worker looks for new jobs
 PROGRESS_WRITE_SECONDS = 1.0     # how often a running step writes progress to the database
+MIN_FREE_GB = float(os.environ.get("FERAL_MIN_FREE_GB", 5))   # a step will not start with less free space
+LOW_DISK_GB = float(os.environ.get("FERAL_LOW_DISK_GB", 30))  # the app shows a warning below this
 
 
 def load_env(path: Path = ROOT / ".env") -> None:

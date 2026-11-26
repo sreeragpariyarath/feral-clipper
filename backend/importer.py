@@ -59,6 +59,8 @@ def sync_stream(session: Session, stream_id: str, source_url: str = "") -> Optio
         if stream.video_file != video_name or not stream.duration_s:
             stream.duration_s = _duration(folder / video_name)
         stream.video_file = video_name
+    else:
+        stream.video_file = ""                       # deleted to free space (clips are kept)
     stream.updated_at = now()
     session.add(stream)
     sync_clips(session, stream_id, commit=False)

@@ -7,6 +7,7 @@ One job at a time on purpose: Whisper, MediaPipe and NVENC share one GPU.
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -15,12 +16,13 @@ from datetime import datetime
 
 from sqlmodel import Session, select
 
-from ..config import PROGRESS_WRITE_SECONDS, ROOT, WORKER_IDLE_SECONDS
+from ..config import DATA_DIR, MIN_FREE_GB, PROGRESS_WRITE_SECONDS, ROOT, WORKER_IDLE_SECONDS
 from ..db import engine, init_db
 from ..events import emit
 from ..importer import sync_stream
 from ..services.jobs import step_command, steps_of
 from ..models import Job, JobStep, now
+from .errors import explain
 
 PERCENT = re.compile(r"\[download\]\s+([\d.]+)%(?:\s+of\s+~?\s*([\d.]+\s*\w+))?(?:\s+at\s+([\d.]+\s*\S+))?(?:\s+ETA\s+(\S+))?")
 
@@ -66,7 +68,7 @@ class _Output:
             self.eta = data.get("eta") or ""
             return
         self.last_line = line[-200:]
-        self.tail = (self.tail + [line])[-20:]
+        self.tail = (self.tail + [line])[-40:]       # enough to hold a full traceback
         m = PERCENT.search(line)
         if m:
             self.percent = float(m.group(1))
@@ -95,6 +97,17 @@ def _kill_tree(pid):
 
 def _run_step(session: Session, job: Job, step: JobStep) -> str:
     """Run one step. Returns done | failed | cancelled."""
+    free_gb = shutil.disk_usage(DATA_DIR).free / 1e9
+    if free_gb < MIN_FREE_GB:                 # refuse before writing half a file onto a full disk
+        step.status, step.started_at, step.finished_at = "failed", now(), now()
+        step.message = f"only {free_gb:.1f} GB free on the data disk (need {MIN_FREE_GB:.0f} GB)"
+        job.error, job.error_hint = step.message, ("Free some space (Streams page: delete old stream videos), "
+                                                   "then press Retry.")
+        session.add_all([step, job])
+        emit(session, "step", f"{step.label} failed: disk nearly full", job_id=job.id,
+             data={"step": step.name, "status": "failed"}, commit=False)
+        session.commit()
+        return "failed"
     args = step_command(job, step.name)
     step.status, step.started_at, step.progress, step.message, step.eta = "running", now(), None, "starting", ""
     job.current_step = step.label
@@ -139,9 +152,9 @@ def _run_step(session: Session, job: Job, step: JobStep) -> str:
         step.status, step.progress, step.message, step.eta = "done", 100.0, "done", ""
         result = "done"
     else:
-        step.status = "failed"
-        step.message = (out.tail[-1] if out.tail else f"exit code {proc.returncode}")[-200:]
-        job.error = "\n".join(out.tail[-8:])[-1500:]
+        reason, hint = explain(out.tail, proc.returncode)
+        step.status, step.message = "failed", reason
+        job.error, job.error_hint = reason, hint
         result = "failed"
     session.add_all([step, job])
     emit(session, "step", f"{step.label} {result}", job_id=job.id,

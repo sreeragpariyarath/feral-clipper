@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { PanelRightOpen } from "lucide-react";
 import { useLiveEvents } from "@/lib/useLiveEvents";
 import { ActivityPanel } from "./ActivityPanel";
+import { DiskBanner } from "./DiskBanner";
 import { MobileNav, Sidebar } from "./Sidebar";
 
 function useStoredFlag(key: string, initial: boolean): [boolean, (v: boolean) => void] {
@@ -34,7 +35,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             <PanelRightOpen size={16} />
           </button>
         )}
-        <div className="mx-auto max-w-6xl animate-rise">{children}</div>
+        <div className="mx-auto max-w-6xl animate-rise">
+          <DiskBanner />
+          {children}
+        </div>
       </main>
       {activity && <ActivityPanel live={live} onClose={() => setActivity(false)} />}
       <MobileNav />

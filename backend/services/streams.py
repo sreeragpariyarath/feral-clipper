@@ -5,9 +5,10 @@ from pathlib import Path
 from sqlmodel import Session, select
 
 from ..config import VOD_DIR
-from ..models import Clip, Stream
-from ..schemas import MonitorSheetOut, StreamOut
-from .errors import NotFound
+from ..events import emit
+from ..models import Clip, Job, Stream
+from ..schemas import MonitorSheetOut, StreamOut, VideoDeletedOut
+from .errors import Conflict, InvalidInput, NotFound
 
 
 def _folder_size(folder: Path) -> int:
@@ -32,6 +33,36 @@ def get(session: Session, stream_id: str) -> Stream:
     if stream is None:
         raise NotFound("stream not found")
     return stream
+
+
+def delete_video(session: Session, stream: Stream) -> VideoDeletedOut:
+    """Permanently delete the downloaded source video of a stream to free disk space.
+
+    Clips, transcript, audio and score sheets stay. Only a video inside the stream's own folder is
+    deleted: a local file the user pointed a job at is never touched. Refused while a job uses the stream.
+    """
+    busy = session.exec(select(Job).where(Job.stream_id == stream.id, Job.status.in_(("queued", "running")))).first()
+    if busy:
+        raise Conflict(f"job {busy.id} is using this stream; wait for it or cancel it first")
+    folder = (VOD_DIR / stream.id).resolve()
+    meta = json.loads((folder / "session.json").read_text(encoding="utf-8")) if (folder / "session.json").exists() else {}
+    name = meta.get("file") or stream.video_file
+    if not name:
+        raise NotFound("this stream has no video file")
+    video = (folder / name).resolve()
+    if video.parent != folder:
+        raise InvalidInput("this stream uses your own video file outside the app's folder; delete it yourself if you want")
+    if not video.is_file():
+        raise NotFound("the video is already gone")
+    size = video.stat().st_size
+    video.unlink()
+    for part in folder.glob(video.name + ".part*"):                 # leftovers of an unfinished download
+        part.unlink(missing_ok=True)
+    stream.video_file = ""
+    session.add(stream)
+    emit(session, "info", f"Deleted the video of {stream.id} ({size / 1e9:.1f} GB freed)", commit=False)
+    session.commit()
+    return VideoDeletedOut(stream_id=stream.id, freed_gb=round(size / 1e9, 2))
 
 
 def monitor_sheet(stream_id: str) -> MonitorSheetOut:
