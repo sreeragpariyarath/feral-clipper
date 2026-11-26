@@ -106,6 +106,26 @@ def sync_clips(session: Session, stream_id: str, commit: bool = True) -> int:
     return count
 
 
+def forget_missing(session: Session) -> int:
+    """Drop streams (and their clips) whose folder was deleted from disk, so the app never lists clips
+    that cannot be played. A stream with recorded posts is kept: the post history must stay."""
+    from .models import Post
+    removed = 0
+    for stream in session.exec(select(Stream)).all():
+        if (VOD_DIR / stream.id).is_dir():
+            continue
+        clips = session.exec(select(Clip).where(Clip.stream_id == stream.id)).all()
+        if any(session.exec(select(Post).where(Post.clip_id == c.id)).first() for c in clips):
+            continue
+        for c in clips:
+            session.delete(c)
+        session.delete(stream)
+        removed += 1
+    if removed:
+        session.commit()
+    return removed
+
+
 def sync_all(session: Session) -> int:
     if not VOD_DIR.exists():
         return 0
@@ -114,4 +134,5 @@ def sync_all(session: Session) -> int:
         if d.is_dir() and (d / "session.json").exists():
             sync_stream(session, d.name)
             n += 1
+    forget_missing(session)
     return n

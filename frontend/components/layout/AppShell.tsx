@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { PanelRightOpen } from "lucide-react";
 import { useLiveEvents } from "@/lib/useLiveEvents";
+import { usePendingPath } from "@/lib/usePendingPath";
+import { PageSkeleton } from "../skeletons/PageSkeleton";
 import { ActivityPanel } from "./ActivityPanel";
 import { DiskBanner } from "./DiskBanner";
 import { MobileNav, Sidebar } from "./Sidebar";
@@ -22,12 +24,13 @@ function useStoredFlag(key: string, initial: boolean): [boolean, (v: boolean) =>
 /** Sidebar on the left, page in the middle, live activity on the right. */
 export function AppShell({ children }: { children: ReactNode }) {
   const live = useLiveEvents();
+  const pending = usePendingPath();
   const [collapsed, setCollapsed] = useStoredFlag("feral-sidebar-collapsed", false);
   const [activity, setActivity] = useStoredFlag("feral-activity-open", true);
 
   return (
     <div className="flex min-h-dvh bg-canvas">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} pending={pending} />
       <main className="relative min-w-0 flex-1 px-4 pt-6 pb-24 sm:px-8 md:pb-10">
         {!activity && (
           <button onClick={() => setActivity(true)} aria-label="Show activity"
@@ -37,11 +40,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
         <div className="mx-auto max-w-6xl animate-rise">
           <DiskBanner />
-          {children}
+          {pending && <PageSkeleton path={pending} />}
+          <div hidden={!!pending}>{children}</div>
         </div>
       </main>
       {activity && <ActivityPanel live={live} onClose={() => setActivity(false)} />}
-      <MobileNav />
+      <MobileNav pending={pending} />
     </div>
   );
 }

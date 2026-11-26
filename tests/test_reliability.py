@@ -134,3 +134,17 @@ def test_explain_uses_the_detail_under_a_multiline_error():
     reason, hint = errors.explain(lines, 1)
     assert reason == r"RuntimeError: C:\data\broken.mp4: Invalid data found when processing input"
     assert "damaged" in hint
+
+
+def test_streams_with_a_deleted_folder_are_forgotten(session, vod_dir):
+    from sqlmodel import select
+    from backend.importer import forget_missing
+    from backend.models import Clip, Post
+    session.add_all([Stream(id="gone"), Clip(stream_id="gone", clip_no="901"),
+                     Stream(id="gone-posted"), Clip(stream_id="gone-posted", clip_no="902")])
+    session.commit()
+    posted = session.exec(select(Clip).where(Clip.stream_id == "gone-posted")).one()
+    session.add(Post(clip_id=posted.id, platform="youtube"))
+    session.commit()
+    assert forget_missing(session) == 1
+    assert session.get(Stream, "gone") is None and session.get(Stream, "gone-posted") is not None

@@ -11,9 +11,10 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { ErrorNote, Skeleton } from "@/components/ui/States";
+import { ErrorNote } from "@/components/ui/States";
 import { duration, localTime, streamName } from "@/lib/format";
 import { useJob } from "@/lib/queries";
+import { JobDetailSkeleton } from "@/components/skeletons/JobDetailSkeleton";
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -28,7 +29,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
   const id = Number(use(params).id);
   const { data: job, isLoading, error } = useJob(id);
 
-  if (isLoading) return <Skeleton className="h-96" />;
+  if (isLoading) return <JobDetailSkeleton />;
   if (!job) return <ErrorNote error={error ?? "Job not found"} />;
 
   const ready = (job.results.ready as { ready?: number } | undefined)?.ready;

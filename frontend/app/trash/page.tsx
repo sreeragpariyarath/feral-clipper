@@ -4,10 +4,12 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState, ErrorNote, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorNote } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { localTime, streamName } from "@/lib/format";
 import { useClips, useRestoreClip } from "@/lib/queries";
+import { PAGES } from "@/lib/pages";
+import { TrashListSkeleton } from "@/components/skeletons/cards";
 
 export default function TrashPage() {
   const { data: clips = [], isLoading, error } = useClips({ deleted: true });
@@ -16,9 +18,9 @@ export default function TrashPage() {
 
   return (
     <>
-      <PageHeader title="Trash" subtitle="Clips you deleted. Their files are kept in clips_trash until you remove them by hand." />
+      <PageHeader {...PAGES.trash} />
       <ErrorNote error={error} />
-      {isLoading && <Skeleton className="h-40" />}
+      {isLoading && <TrashListSkeleton />}
       {!isLoading && !clips.length && <EmptyState icon={<Trash2 />} title="Trash is empty" />}
       <div className="grid gap-2">
         {clips.map((c) => (

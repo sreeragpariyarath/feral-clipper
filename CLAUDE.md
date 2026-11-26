@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-GTA Clipper: turns Twitch/YouTube streams (live or VOD) into 9:16 captioned shorts. Windows-only workflow (PowerShell, NVENC, CUDA). Python 3.11, ffmpeg on PATH. There is no test suite or linter; verify changes by running the commands below (`--dry`, `--list`, `--detect-only` modes spend nothing / render nothing).
+GTA Clipper: turns Twitch/YouTube streams (live or VOD) into 9:16 captioned shorts. Windows-only workflow (PowerShell, NVENC, CUDA). Python 3.11, ffmpeg on PATH. Backend tests: `python -m pytest tests`; frontend: `pnpm typecheck` in `frontend/`. No linter. For pipeline changes also run the commands below (`--dry`, `--list`, `--detect-only` modes spend nothing / render nothing).
 
 ## Commands
 
@@ -16,6 +16,9 @@ python live.py <channel> --auto             # live Twitch: record, detect, cut, 
 python scan.py <session> --dry|--list       # frame scan of a downloaded VOD (picture-based moments); no flag renders top N
 python merge.py <session> --list|--top 8    # merge vod.py (chat/audio) + scan.py moments into one ranking, render
 python picks.py <vod_url> picks.json        # render exact hand/Claude-chosen start/end times
+python monitor.py <session> --top 10        # score sheet of 30 s windows for a downloaded stream (--render to cut them)
+python run_stream.py <vod_url> [...] --top 10   # many streams in a row, resumes after failures (--queue file.txt)
+python -m pytest tests                      # backend tests (temporary data folder; no GPU or network)
 python cut.py "<session>" --all|--id 7 [--force]   # cut leftovers from a session
 python cut.py --rerender data\...\clips\003 # re-render a clip (e.g. after editing judge.json or facecam box)
 python tools\setup_models.py                # one-time: download local CLIP + PANNs models into models\
