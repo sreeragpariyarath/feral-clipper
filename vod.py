@@ -7,7 +7,7 @@ The real work lives in clipper/sources/vod_source.py; this file only reads the o
 """
 import argparse
 
-from clipper.common import load_config, log, need
+from clipper.common import load_config, log, need, read_json
 from clipper.pipeline import process_candidate
 from clipper.sources import vod_source as vs
 
@@ -47,6 +47,13 @@ def main():
     if args.at:                                   # exact times, no detection
         vs.clip_manual_times(args.url, info, session, cfg, channel, args.at, args.len)
         return
+
+    sj = session / "session.json"
+    if (not args.download_only and not args.fast and sj.exists()
+            and read_json(sj).get("slice_start") is not None):
+        # The file on disk is only a slice; the moments below would use VOD time and cut the wrong part.
+        raise SystemExit("This session holds only a --from/--to slice. Finish it with merge.py "
+                         "(see run_stream.py), or delete the session folder and start again.")
 
     found = vs.find_moments(args.url, info, session, cfg, duration, chat=args.chat, audio=args.audio)
     top = vs.pick_top(found, args.top, args.t_from, args.t_to)

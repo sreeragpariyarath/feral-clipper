@@ -1,7 +1,7 @@
 {
   "quality": "1080p60,1080p,720p60,720p,best",
   "keep_hours": 6,
-  "facecam": "auto",
+  "facecam": {"x": 0.0, "y": 0.0, "w": 0.34, "h": 0.4},
   "gameplay": {
     "x": 0.0,
     "y": 0.0,
@@ -21,7 +21,7 @@
     "min_m30": 15,
     "min_ratio": 1.6
   },
-  "layout": "overlay",
+  "layout": "punch",
   "vod_limit_rate": "20M",
   "campaign_overlay": {
     "file": "kreek_overlay.png",

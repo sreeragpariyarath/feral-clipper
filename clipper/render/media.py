@@ -118,8 +118,8 @@ def chunk_words(words, max_chars=14, max_words=3, gap=0.6):
     return chunks
 
 
-def build_ass(words, clip_len, caption_y, hook=None, emphasize=()):
-    """words: [{w,s,e}] with times relative to clip start."""
+def build_ass(words, clip_len, caption_y, hook=None, emphasize=(), box=False):
+    """words: [{w,s,e}] with times relative to clip start. box=True draws a dark bar behind the captions."""
     emph = {e.upper() for e in emphasize}
     header = f"""[Script Info]
 ScriptType: v4.00+
@@ -159,6 +159,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             text = " ".join(parts)
             lines.append(f"Dialogue: 0,{_ass_time(start)},{_ass_time(min(end, clip_len))},Cap,,0,0,0,,"
                          f"{{\\pos(540,{caption_y})}}{text}")
+    if box:   # BorderStyle 3 = opaque box behind the text, padded by Outline
+        header = header.replace(
+            "Style: Cap,Arial Black,84,&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,-1,0,0,0,100,100,0,0,1,7,2,5,40,40,0,1",
+            "Style: Cap,Arial Black,70,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,3,16,0,5,40,40,0,1")
     return header + "\n".join(lines) + "\n"
 
 
@@ -214,12 +218,20 @@ def campaign_overlay(cfg):
 
 def render_clip(media, offset, duration, out_dir, cfg, words, hook=None, emphasize=()):
     """Render a 1080x1920 clip. words are relative to clip start."""
+    from clipper.render import layouts
     out_dir = Path(out_dir)
     ovr = campaign_overlay(cfg)
     if ovr:                              # push the facecam/title down so nothing sits under the logo
         cfg = dict(cfg, cam_top=max(cfg.get("cam_top", 60), ovr[3] + ovr[2] + 12))
     cam = cfg.get("facecam")
     layout = cfg.get("layout")
+    if cam == "face":                    # find the streamer's face in this clip (MediaPipe)
+        from clipper.render.face_track import find_webcam_box
+        cam = find_webcam_box(media, offset, duration)
+        if cam is None:
+            log("face tracking: no face found in this clip -> layout without a webcam")
+        else:
+            log(f"face tracking: webcam box {cam}")
     if cam == "auto":
         cam = _auto_cam(media, offset, duration, out_dir)
         if cam is None and layout == "overlay":
@@ -227,7 +239,11 @@ def render_clip(media, offset, duration, out_dir, cfg, words, hook=None, emphasi
     game = cfg.get("gameplay") or {"x": 0, "y": 0, "w": 1, "h": 1}
     extra = []          # extra image inputs (overlay layout)
     ass_hook = hook
-    if layout == "overlay":
+    if layout in layouts.NAMES:
+        vf, extra, caption_y, used_title = layouts.build(layout, game, cam, hook, out_dir, cfg)
+        if used_title:
+            ass_hook = None              # the title card replaces the ASS hook banner
+    elif layout == "overlay":
         # blurred backdrop, rounded facecam card on top, compact title card, and a SHARP game panel
         # that shows most of the frame (less zoom than a full-bleed 9:16 crop)
         from clipper.render.overlay import cam_assets, round_mask, title_card
@@ -287,7 +303,7 @@ def render_clip(media, offset, duration, out_dir, cfg, words, hook=None, emphasi
         caption_y = 1380
         vf = (f"[0:v]{_crop(game)},scale=-2:1920,crop=1080:1920,setsar=1,ass=captions.ass[v]")
     (out_dir / "captions.ass").write_text(
-        build_ass(words, duration, caption_y, ass_hook, emphasize), encoding="utf-8")
+        build_ass(words, duration, caption_y, ass_hook, emphasize, box=(layout == "punch")), encoding="utf-8")
 
     if ovr:
         # a logo some campaigns require on screen for the WHOLE clip; drawn on top of everything, incl. captions

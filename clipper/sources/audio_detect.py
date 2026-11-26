@@ -22,7 +22,11 @@ def download_audio(url, session):
              "--socket-timeout", "30", "--retry-sleep", "3"]
     for attempt in range(1, 4):
         try:
-            run(["yt-dlp", *flags, "-f", "ba", "-o", str(session / "audio.%(ext)s"), url])
+            # no capture: yt-dlp prints its progress, so the review UI can show a percentage
+            import subprocess
+            res = subprocess.run(["yt-dlp", *flags, "-f", "ba", "-o", str(session / "audio.%(ext)s"), url])
+            if res.returncode != 0:
+                raise RuntimeError("audio download failed (yt-dlp exit %d)" % res.returncode)
             break
         except RuntimeError as e:
             if attempt == 3:

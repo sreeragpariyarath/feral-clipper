@@ -1,11 +1,10 @@
 """Claude judge: decides if a window works as a standalone short.
 
-With ANTHROPIC_API_KEY set -> calls the API.
-Without it -> heuristic cut + saves prompt.txt so you can paste it into claude.ai,
+With a provider set up (config judge_provider: claude / gemini / ollama) -> asks it.
+Without one -> heuristic cut + saves prompt.txt so you can paste it into claude.ai,
 then re-render with:  python cut.py --rerender <clip_dir> --judge judge.json
 """
 import json
-import os
 import re
 
 SYSTEM_PROMPT = """You are a short-form video editor for gaming livestream clips (TikTok, Reels, YouTube Shorts).
@@ -19,18 +18,23 @@ Rules:
   a clear payoff, and needs no prior context.
 - Prefer 15-45 s; never longer than 60 s; never shorter than 8 s.
 - Start as late as possible while keeping the setup; end right after the payoff/reaction.
+- payoff_text names what the clip ENDS on: the punchline, the reaction, the crash, the result (max 10 words,
+  quoted line or short description). If nothing lands before end_s, payoff_text is "" and standalone=false.
+  A loud moment is not a payoff by itself; a funny line with no noise can be one.
 - Reject: story cutscenes, ending/plot spoilers, in-game TV/radio played on its own, money glitches/exploits,
   clips where copyrighted music is the main audio, dead air, anything against the campaign brief.
 - If 'discovery' is present, it lists what the streamer found (creature/place/secret). Prefer windows where the
   discovery is on screen AND reacted to; start just before it appears. If discovery.blocked is non-empty, add it to violations.
 - 'visual_scan', if present, is what a frame scan saw ON SCREEN (kind, what, at_s seconds into the window). It can
   confirm a silent action moment; treat it as a hint, never describe more than it and the transcript support.
+  Each 'what' is the closest label for ONE STILL FRAME: it says what is visible, not what happened. A "plane crash"
+  label can be a wreck that was already there; only call it an event if the transcript or several frames show it.
 - Chat/audio signals are hints only; chat reacts 5-20 s AFTER the moment, loud audio is AT the moment.
 - Timestamps are seconds relative to the window start (0 = window start).
 - Output ONLY one JSON object, no markdown, with exactly these keys:
 {"standalone": bool, "score": 0-10 integer, "category": "funny|hype|fail|clutch|wholesome|rage|other",
  "start_s": number, "end_s": number, "hook_text": "max 8 words, on-screen banner",
- "title": "post title, max 70 chars", "emphasize": ["WORD", ...],
+ "title": "post title, max 70 chars", "emphasize": ["WORD", ...], "payoff_text": "what the clip ends on, or empty",
  "reasons": "one sentence", "violations": [], "needs_context": bool}"""
 
 
@@ -70,7 +74,13 @@ def validate(j, window_len):
     j.setdefault("hook_text", "")
     j.setdefault("title", "")
     j.setdefault("emphasize", [])
+    j["payoff_text"] = str(j.get("payoff_text") or "").strip()
     return j
+
+
+def has_payoff(j):
+    """A judged clip must name what it ends on. Heuristic (no-key) judgements are not held to this."""
+    return j.get("source") == "heuristic" or bool(j.get("payoff_text"))
 
 
 def heuristic(cand, window_len):
@@ -84,38 +94,32 @@ def heuristic(cand, window_len):
 
 
 def judge(cand, words, window_len, cfg, channel, clip_dir, brief=None):
+    """Judge one window with the provider chosen in config.json (see clipper.ai.providers).
+    Without a usable provider, a heuristic cut is used and prompt.txt is kept for judging by hand."""
+    from clipper.ai import providers
+
     user_msg = build_user_message(cand, words, window_len, channel, brief)
     (clip_dir / "prompt.txt").write_text(SYSTEM_PROMPT + "\n\nINPUT:\n" + user_msg, encoding="utf-8")
 
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    if not providers.available(cfg):
         return validate(heuristic(cand, window_len), window_len)
 
-    import anthropic
-    client = anthropic.Anthropic()
     last_err = None
     for attempt in range(2):
         try:
-            resp = client.messages.create(
-                model=cfg["anthropic_model"],
-                max_tokens=2000,
-                system=[{"type": "text", "text": SYSTEM_PROMPT,
-                         "cache_control": {"type": "ephemeral"}}],
-                messages=[{"role": "user", "content": user_msg if attempt == 0 else
-                           user_msg + "\n\nReturn valid JSON only."}],
-            )
-            text = "".join(b.text for b in resp.content if b.type == "text")
-            if not text.strip() or "{" not in text:
-                kinds = [b.type for b in resp.content]
-                (clip_dir / "judge_raw.txt").write_text(
-                    f"stop_reason={resp.stop_reason} blocks={kinds}\n---\n{text}", encoding="utf-8")
-                raise ValueError(f"no JSON (stop_reason={resp.stop_reason}, blocks={kinds}, "
-                                 f"text={text[:120]!r})")
-            j = validate(parse_json(text), window_len)
-            j["source"] = cfg["anthropic_model"]
-            j["usage"] = {"in": resp.usage.input_tokens, "out": resp.usage.output_tokens}
+            reply = providers.complete(SYSTEM_PROMPT, user_msg if attempt == 0 else
+                                       user_msg + "\n\nReturn valid JSON only.", cfg)
+            if "{" not in reply.text:
+                (clip_dir / "judge_raw.txt").write_text(reply.text, encoding="utf-8")
+                raise ValueError(f"no JSON in reply: {reply.text[:120]!r}")
+            j = validate(parse_json(reply.text), window_len)
+            j["source"] = reply.source
+            j["usage"] = {"in": reply.tokens_in, "out": reply.tokens_out}
             return j
-        except Exception as e:  # network, parse, overload
+        except (providers.ProviderError, ValueError, json.JSONDecodeError) as e:
+            last_err = e
+        except Exception as e:                      # SDK errors (rate limit, overload): one retry, then heuristic
             last_err = e
     j = validate(heuristic(cand, window_len), window_len)
-    j["reasons"] = f"Claude failed ({last_err}); heuristic used"
+    j["reasons"] = f"judge failed ({last_err}); heuristic used"
     return j

@@ -123,8 +123,9 @@ def main():
         except Exception:
             dur = None
     s0 = float((meta or {}).get("slice_start") or 0)
-    if s0:
-        # the file is only a slice of the VOD; chat moments are in VOD time, scan moments in file time
+    if meta and meta.get("slice_start") is not None:
+        # the file is only a slice of the VOD; chat moments are in VOD time, scan moments in file time.
+        # Filter even when the slice starts at 0, or moments past the end of the file get cut.
         chat = shift_chat(chat, s0, dur)
         log(f"Downloaded slice starts at {fmt_ts(s0)} of the VOD; times below are in the slice "
             f"(VOD time = shown time + {fmt_ts(s0)})")

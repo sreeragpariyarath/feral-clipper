@@ -9,3 +9,11 @@ opencv-python-headless>=4.9
 numpy
 open_clip_torch
 panns_inference
+
+# backend API and worker
+fastapi>=0.115
+uvicorn>=0.32
+sqlmodel>=0.0.22
+mediapipe
+pytest
+httpx
