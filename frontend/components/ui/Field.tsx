@@ -22,5 +22,5 @@ export const Textarea = ({ className, ...rest }: TextareaHTMLAttributes<HTMLText
 );
 
 export const Select = ({ className, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) => (
-  <select className={cn(control, "pr-8", className)} {...rest} />
+  <select className={cn(control, "select-menu flex", className)} {...rest} />
 );

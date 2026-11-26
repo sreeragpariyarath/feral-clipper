@@ -7,7 +7,7 @@ type Tab<T extends string> = { value: T; label: string; count?: number };
 /** Segmented control; the parent owns the selected value. */
 export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: Tab<T>[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div role="tablist" className="inline-flex rounded-lg border bg-muted p-0.5">
+    <div role="tablist" className="scrollbar-none inline-flex max-w-full overflow-x-auto rounded-lg border bg-muted p-0.5">
       {tabs.map((t) => (
         <button
           key={t.value}
@@ -16,7 +16,7 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: Tab<T>
           aria-selected={value === t.value}
           onClick={() => onChange(t.value)}
           className={cn(
-            "rounded-md px-3 py-1.5 text-sm font-medium transition",
+            "shrink-0 rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition",
             value === t.value ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground",
           )}
         >

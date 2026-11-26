@@ -26,14 +26,19 @@ export function ClipFilters({ stream, onStream, view, onView, sort, onSort, coun
         tabs={(["ready", "approved", "rejected", "skipped", "all"] as ClipView[]).map((v) => ({
           value: v, label: v[0].toUpperCase() + v.slice(1), count: counts?.[v],
         }))} />
-      <Select aria-label="Stream" value={stream} onChange={(e) => onStream(e.target.value)} className="w-auto min-w-48">
-        <option value="">All streams</option>
-        {streams.map((s) => <option key={s.id} value={s.id}>{s.title || streamName(s.id)} ({s.clips})</option>)}
-      </Select>
-      <Select aria-label="Sort" value={sort} onChange={(e) => onSort(e.target.value as ClipSort)} className="w-auto">
-        <option value="score">Best score first</option>
-        <option value="newest">Newest first</option>
-      </Select>
+      {/* Select is always full width: the wrapping box sets its size, so the filters stay on one row */}
+      <div className="max-w-80 min-w-48">
+        <Select aria-label="Stream" value={stream} onChange={(e) => onStream(e.target.value)}>
+          <option value="">All streams</option>
+          {streams.map((s) => <option key={s.id} value={s.id}>{s.title || streamName(s.id)} ({s.clips})</option>)}
+        </Select>
+      </div>
+      <div>
+        <Select aria-label="Sort" value={sort} onChange={(e) => onSort(e.target.value as ClipSort)}>
+          <option value="score">Best score first</option>
+          <option value="newest">Newest first</option>
+        </Select>
+      </div>
     </div>
   );
 }
