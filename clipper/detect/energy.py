@@ -9,6 +9,7 @@ Signals (one value per second):
 Windows (default 30 s, stepped every 5 s) are kept or dropped by the filters in FILTERS,
 and get a score sheet of sub-scores. Nothing here decides the final clip; the judge and you do.
 """
+import bisect
 import subprocess
 
 import numpy as np
@@ -184,14 +185,44 @@ def score_window(db, mot, a, win, thr_db, thr_mot):
     }
 
 
+class _Prefix:
+    """Prefix sums: the sum of any slice [a, b) in O(1) instead of O(b - a)."""
+
+    def __init__(self, values: np.ndarray):
+        self.c = np.concatenate(([0.0], np.cumsum(values, dtype=np.float64)))
+
+    def mean(self, a: int, b: int) -> float:
+        return float(self.c[b] - self.c[a]) / (b - a) if b > a else 0.0
+
+
+def _gates_may_pass(energy_frac: float, motion_frac: float) -> bool:
+    """The sound and picture gates of score_window, from the two fractions alone (O(1))."""
+    silent_action = energy_frac < 0.35 and motion_frac >= 0.5
+    ok = True
+    if FILTERS["sustained"] or FILTERS["silent_action"]:
+        ok &= energy_frac >= 0.6 or (FILTERS["silent_action"] and silent_action)
+    if FILTERS["picture"]:
+        ok &= motion_frac >= 0.3 or (FILTERS["silent_action"] and silent_action)
+    return ok
+
+
 def find_windows(db, mot, win=30, step=5):
-    """Score every window; returns dicts for windows that pass the gates."""
-    if len(db) < win or len(mot) < win:
+    """Score every window; returns dicts for windows that pass the gates, best first.
+
+    Loud-second and busy-second counts come from prefix sums, so a window that fails the sound or
+    picture gate is dropped in O(1); only the rest get the full score_window pass.
+    """
+    n = min(len(db), len(mot))
+    if n < win:
         return []
+    db, mot = np.asarray(db[:n], dtype=np.float64), np.asarray(mot[:n], dtype=np.float64)
     thr_db = float(np.percentile(db, 50)) + 6.0           # "loud for this stream"
     thr_mot = float(np.percentile(mot, 60))               # "busy for this stream"
+    loud, busy = _Prefix(db > thr_db), _Prefix(mot > thr_mot)
     rows = []
-    for a in range(0, len(db) - win + 1, step):
+    for a in range(0, n - win + 1, step):
+        if not _gates_may_pass(loud.mean(a, a + win), busy.mean(a, a + win)):
+            continue
         r = score_window(db, mot, a, win, thr_db, thr_mot)
         if r and r["passes"]:
             rows.append(r)
@@ -200,11 +231,17 @@ def find_windows(db, mot, win=30, step=5):
 
 
 def pick_non_overlapping(rows, top, gap=45):
-    """Greedy: best first, skip any window whose peak is within `gap` seconds of a kept one."""
-    kept = []
+    """Greedy: best first, skip any window whose peak is within `gap` seconds of a kept one.
+
+    Kept peaks stay sorted, so each check is a binary search (O(log k)) instead of a scan of all kept.
+    """
+    kept, peaks = [], []
     for r in rows:
-        if all(abs(r["peak"] - k["peak"]) >= gap for k in kept):
-            kept.append(r)
         if len(kept) >= top:
             break
+        i = bisect.bisect_left(peaks, r["peak"])
+        near = (i < len(peaks) and peaks[i] - r["peak"] < gap) or (i > 0 and r["peak"] - peaks[i - 1] < gap)
+        if not near:
+            peaks.insert(i, r["peak"])
+            kept.append(r)
     return kept

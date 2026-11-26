@@ -39,8 +39,8 @@ progress for each step:
 | Face | MediaPipe face finder, **one fixed box per clip** | `clipper/render/face_track.py` |
 | Render | 6 layouts incl. punch (title box, webcam, gameplay), captions, campaign logo | `clipper/render/media.py`, `layouts.py` |
 | Commands | `vod.py`, `scan.py`, `merge.py`, `monitor.py`, `run_stream.py`, `cut.py` | repo root |
-| Review API | stdlib HTTP server: sessions, clips, review, delete (trash), jobs | `review_ui/server.py`, `review_ui/jobs.py` |
-| Jobs | one background thread, log file, % parsed from yt-dlp output | `review_ui/jobs.py` |
+| Review API | stdlib HTTP server: sessions, clips, review, delete (trash), jobs | replaced by `backend/` (Phase 1–2.5) |
+| Jobs | one background thread, log file, % parsed from yt-dlp output | replaced by `backend/worker/` |
 | Frontend | Next.js 15 + Tailwind: Library page, New stream page, components | `review_ui/frontend` |
 
 ---
@@ -201,6 +201,20 @@ and the old review server `review_ui/server.py` + `review_ui/jobs.py` (replaced 
 - Track Claude tokens and cost per job.
 - **Done when:** one Start button takes a URL to rendered clips with no manual step, and the
   AsianJeff stream runs end to end.
+
+### Phase 2.5 — Clean architecture (backend)
+- Typed request / response schemas (Pydantic) for every route; no hand-built dicts in routes.
+- Service layer: routes only parse input, call a service, return a schema.
+- One module per pipeline step under `backend/pipeline/steps/`, plus a step registry.
+- Remove dead and duplicate code: `review_ui/server.py`, `review_ui/jobs.py`; retire `api/compat.py` when the frontend moves to `/api/v1` (Phase 3).
+- Full type hints; no silent broad `except` blocks (log and re-raise, or handle a named error).
+- Window scoring with prefix sums: each 30 s window in O(1), the whole stream in O(n).
+- Tests (pytest): services, step skip / resume, window scoring, API routes.
+- **Done when:** tests pass, routes contain no business logic, each step is its own module, and a full job still runs.
+- **Status (2026-11-26): done.** `backend/schemas/`, `backend/services/` (errors mapped to HTTP in `app.py`),
+  `backend/api/routes/` (one thin router per resource), `backend/pipeline/registry.py` + `steps/<name>.py`,
+  prefix-sum pre-gate + bisect spacing in `clipper/detect/energy.py` (same results, 4.4× faster on a 5 h stream),
+  `review_ui/` removed, 21 pytest tests (`python -m pytest tests`). Job 8 ran all 12 steps on a fresh file.
 
 ### Phase 3 — Frontend v2
 - App shell: sidebar, activity panel, toasts, dark / light theme.

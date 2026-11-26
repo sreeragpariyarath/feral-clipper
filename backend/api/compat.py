@@ -3,14 +3,15 @@ They read and write the same database as /api/v1, so both stay in step.
 Phase 3 moves the frontend to /api/v1; then these routes can go."""
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from .. import clips_service, jobs_service
+from ..schemas import ClipPatch, JobCreate
+from ..services import clips as clips_svc, jobs as jobs_svc, streams as streams_svc
 from ..config import VOD_DIR, key_status
 from ..db import get_session
 from ..models import Clip, Job, Stream
@@ -27,10 +28,7 @@ def _safe(*parts: str) -> None:
 
 def _clip(session: Session, sid: str, cid: str) -> Clip:
     _safe(sid, cid)
-    c = session.exec(select(Clip).where(Clip.stream_id == sid, Clip.clip_no == cid, Clip.deleted == False)).first()  # noqa: E712
-    if not c:
-        raise HTTPException(404, "clip not found")
-    return c
+    return clips_svc.by_number(session, sid, cid)
 
 
 @router.get("/api/sessions")
@@ -56,37 +54,24 @@ def session_clips(sid: str, session: Session = Depends(get_session)):
 @router.get("/api/sessions/{sid}/monitor")
 def session_monitor(sid: str):
     _safe(sid)
-    path = VOD_DIR / sid / "monitor.json"
-    if not path.exists():
-        return {"exists": False, "picks": []}
-    import json
-    return {"exists": True, **json.loads(path.read_text(encoding="utf-8"))}
-
-
-class ReviewIn(BaseModel):
-    decision: Optional[str] = None
-    title: Optional[str] = None
-    caption: Optional[str] = None
+    return streams_svc.monitor_sheet(sid).model_dump()
 
 
 @router.post("/api/sessions/{sid}/clips/{cid}/review")
-def session_review(sid: str, cid: str, body: ReviewIn, session: Session = Depends(get_session)):
-    try:
-        c = clips_service.update_review(session, _clip(session, sid, cid), body.decision, body.title, body.caption)
-    except ValueError as e:
-        raise HTTPException(400, str(e))
+def session_review(sid: str, cid: str, body: ClipPatch, session: Session = Depends(get_session)):
+    c = clips_svc.review(session, _clip(session, sid, cid), body)
     return {"decision": c.decision, "title": c.title, "caption": c.caption}
 
 
 @router.delete("/api/sessions/{sid}/clips/{cid}")
 def session_delete(sid: str, cid: str, session: Session = Depends(get_session)):
-    clips_service.trash(session, _clip(session, sid, cid))
+    clips_svc.trash(session, _clip(session, sid, cid))
     return {"trashed": cid}
 
 
 # ---------------------------------------------------------------- jobs in the shape the current page expects
 def _old_job(session: Session, job: Job, with_log: bool) -> dict:
-    d = jobs_service.job_dict(session, job, with_log=with_log)
+    d = jobs_svc.to_out(session, job, with_log=with_log).model_dump(mode="json")
     state = {"queued": "running", "running": "running", "done": "done"}.get(job.status, "failed")
     return {"id": str(job.id), "url": job.source_url, "mode": job.kind, "top": job.params.get("top", 10),
             "session": job.stream_id, "state": state,
@@ -98,32 +83,27 @@ def _old_job(session: Session, job: Job, with_log: bool) -> dict:
 class OldJobIn(BaseModel):
     url: str = ""
     path: str = ""
-    mode: str = "monitor"
+    mode: Literal["download", "monitor", "render"] = "monitor"
     top: int = 10
 
 
 @router.post("/api/jobs", status_code=202)
 def old_create_job(body: OldJobIn, session: Session = Depends(get_session)):
-    try:
-        job = jobs_service.create_job(session, body.mode, body.url, body.top, key_status()["anthropic"], body.path)
-    except jobs_service.JobError as e:
-        raise HTTPException(400, str(e))
+    req = JobCreate(kind=body.mode, url=body.url, path=body.path, top=body.top)
+    job = jobs_svc.create(session, req, key_status()["anthropic"])
     return _old_job(session, job, with_log=False)
 
 
 @router.get("/api/jobs")
 def old_list_jobs(session: Session = Depends(get_session)):
-    return [_old_job(session, j, False) for j in session.exec(select(Job).order_by(Job.id.desc()).limit(20)).all()]
+    return [_old_job(session, j, False) for j in jobs_svc.recent(session, 20)]
 
 
 @router.get("/api/jobs/{job_id}")
 def old_get_job(job_id: str, session: Session = Depends(get_session)):
     if not job_id.isdigit():
         raise HTTPException(404, "job not found")
-    job = session.get(Job, int(job_id))
-    if not job:
-        raise HTTPException(404, "job not found")
-    return _old_job(session, job, with_log=True)
+    return _old_job(session, jobs_svc.get(session, int(job_id)), with_log=True)
 
 
 # ---------------------------------------------------------------- media (video seeking supported)

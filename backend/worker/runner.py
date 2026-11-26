@@ -19,7 +19,7 @@ from ..config import PROGRESS_WRITE_SECONDS, ROOT, WORKER_IDLE_SECONDS
 from ..db import engine, init_db
 from ..events import emit
 from ..importer import sync_stream
-from ..jobs_service import step_command, steps_of
+from ..services.jobs import step_command, steps_of
 from ..models import Job, JobStep, now
 
 PERCENT = re.compile(r"\[download\]\s+([\d.]+)%(?:\s+of\s+~?\s*([\d.]+\s*\w+))?(?:\s+at\s+([\d.]+\s*\S+))?(?:\s+ETA\s+(\S+))?")

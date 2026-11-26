@@ -36,10 +36,12 @@ def _title_from_post(clip_dir: Path) -> str:
 
 
 def _duration(video: Path) -> float:
+    """Length in seconds, or 0 when ffprobe cannot read the file (half-downloaded, missing)."""
+    import subprocess
+    from clipper.common import duration_of
     try:
-        from clipper.common import duration_of
         return float(duration_of(video))
-    except Exception:
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError):
         return 0.0
 
 

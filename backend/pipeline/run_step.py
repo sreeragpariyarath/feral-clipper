@@ -11,11 +11,11 @@ from sqlmodel import Session
 from ..db import engine, init_db
 from ..models import Job
 from .context import Ctx
-from .steps import STEPS
+from .registry import ORDER, load
 
 
 def main(job_id: int, step: str) -> None:
-    if step not in STEPS:
+    if step not in ORDER:
         raise SystemExit(f"unknown step {step}")
     init_db()
     with Session(engine) as s:
@@ -24,7 +24,7 @@ def main(job_id: int, step: str) -> None:
             raise SystemExit(f"job {job_id} not found")
         ctx = Ctx(job.id, job.stream_id, job.params, job.source_url)
 
-    result = STEPS[step][1](ctx) or {}
+    result = load(step)(ctx) or {}
 
     with Session(engine) as s:                       # keep each step's summary (and token use) on the job
         job = s.get(Job, job_id)

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT / "data"
+DATA_DIR = Path(os.environ.get("FERAL_DATA_DIR", ROOT / "data"))   # tests point this at a temp folder
 VOD_DIR = DATA_DIR / "vod"
 JOB_LOG_DIR = DATA_DIR / "jobs"
 DB_PATH = DATA_DIR / "feral.db"
