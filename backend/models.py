@@ -88,7 +88,24 @@ class Campaign(SQLModel, table=True):
     payout_per_1k: float = 0.0
     platforms: list = Field(default_factory=list, sa_column=Column(JSON))
     ends_at: Optional[datetime] = None
+    logo_on: bool = True              # draw the logo on every clip of this campaign
+    logo_width: int = 420             # px on the 1080-wide video
+    logo_y: int = 28                  # px from the top
+    hashtags: str = ""                # extra tags added to every caption
     created_at: datetime = Field(default_factory=now)
+
+
+class Post(SQLModel, table=True):
+    """One clip posted to one platform. Views are typed in by hand (no platform logins)."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    clip_id: int = Field(foreign_key="clip.id", index=True)
+    campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id", index=True)
+    platform: str                     # youtube | tiktok | instagram | other
+    url: str = ""
+    title: str = ""
+    posted_at: datetime = Field(default_factory=now)
+    views: int = 0
+    views_at: Optional[datetime] = None
 
 
 class Setting(SQLModel, table=True):

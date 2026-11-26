@@ -9,6 +9,7 @@ import { JudgeNotes } from "@/components/clips/JudgeNotes";
 import { ReviewEditor } from "@/components/clips/ReviewEditor";
 import { ScoreBars } from "@/components/clips/ScoreBars";
 import { Transcript } from "@/components/clips/Transcript";
+import { PostingKit } from "@/components/posts/PostingKit";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -70,6 +71,7 @@ export default function ClipPage({ params }: { params: Promise<{ id: string }> }
 
         <div className="grid content-start gap-5">
           <ReviewEditor clip={clip} />
+          {clip.has_video && <PostingKit clip={clip} />}
           <JudgeNotes judge={judge} />
           <Transcript words={words} offset={offset} time={time}
             onSeek={(t) => { if (video.current) { video.current.currentTime = Math.max(0, t); void video.current.play(); } }} />

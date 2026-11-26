@@ -13,6 +13,10 @@ class CampaignIn(BaseModel):
     payout_per_1k: float = Field(default=0.0, ge=0)
     platforms: list[str] = []
     ends_at: datetime | None = None
+    logo_on: bool = True
+    logo_width: int = Field(default=420, ge=100, le=1080)
+    logo_y: int = Field(default=28, ge=0, le=1800)
+    hashtags: str = ""
 
     @field_validator("ends_at")
     @classmethod

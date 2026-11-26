@@ -5,9 +5,9 @@ from pathlib import Path
 
 from sqlmodel import Session, select
 
-from ..config import JOB_LOG_DIR
+from ..config import JOB_LOG_DIR, ROOT
 from ..events import emit
-from ..models import Job, JobStep, now
+from ..models import Campaign, Job, JobStep, now
 from ..schemas import JobCreate, JobOut, ProgressOut, StepOut
 from .errors import Conflict, InvalidInput, NotFound
 
@@ -57,11 +57,37 @@ def _resolve_source(body: JobCreate) -> tuple[str, str, dict]:
     return stream_id_for_url(body.url), body.url.strip(), {}
 
 
+LOGO_EXT = frozenset({".png", ".webp", ".jpg", ".jpeg"})
+
+
+def campaign_settings(session: Session, campaign_id: int) -> dict:
+    """What the pipeline needs from a campaign. Copied into the job, so editing the campaign later
+    does not change a job that is already queued or running."""
+    c = session.get(Campaign, campaign_id)
+    if c is None:
+        raise NotFound("campaign not found")
+    if not c.active:
+        raise InvalidInput(f"campaign {c.name} is not active")
+    overlay = None
+    if c.logo_on and c.logo_path.strip():
+        logo = Path(c.logo_path.strip().strip('"'))
+        logo = logo if logo.is_absolute() else ROOT / logo
+        if not logo.is_file():
+            raise InvalidInput(f"campaign logo not found: {logo}")
+        if logo.suffix.lower() not in LOGO_EXT:
+            raise InvalidInput("campaign logo must be a PNG, WEBP or JPG image")
+        overlay = {"file": str(logo), "w": c.logo_width, "y": c.logo_y, "x": "center"}
+    caption = " ".join(part for part in (c.caption.strip(), c.hashtags.strip()) if part)
+    return {"id": c.id, "name": c.name, "overlay": overlay, "caption": caption, "brief": c.brief.strip()}
+
+
 # ---------------------------------------------------------------- actions
 def create(session: Session, body: JobCreate, has_key: bool) -> Job:
     if body.kind == "render" and not has_key:
         raise InvalidInput("render needs the judge: set judge_provider in config.json and its key in .env")
     stream_id, url, extra = _resolve_source(body)
+    if body.campaign_id is not None:
+        extra["campaign"] = campaign_settings(session, body.campaign_id)
     # job and steps are written in one transaction: the worker never sees a job without steps
     job = Job(kind=body.kind, source_url=url, stream_id=stream_id, params={"top": body.top, **extra},
               status="creating")

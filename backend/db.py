@@ -17,9 +17,29 @@ def _sqlite_pragmas(dbapi_conn, _record):
     cur.close()
 
 
+def _add_missing_columns() -> None:
+    """create_all makes new tables but never changes old ones: add columns that newer models have.
+    Only adds (never drops or renames), using each column's Python default for existing rows."""
+    from sqlalchemy import inspect, text
+    insp = inspect(engine)
+    with engine.begin() as conn:
+        for table in SQLModel.metadata.sorted_tables:
+            if not insp.has_table(table.name):
+                continue
+            have = {c["name"] for c in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in have:
+                    continue
+                ddl = col.type.compile(dialect=engine.dialect)
+                default = col.default.arg if col.default is not None and not callable(col.default.arg) else None
+                lit = "" if default is None else f" DEFAULT {int(default) if isinstance(default, bool) else repr(default)}"
+                conn.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {ddl}{lit}'))
+
+
 def init_db() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     SQLModel.metadata.create_all(engine)
+    _add_missing_columns()
 
 
 def get_session():

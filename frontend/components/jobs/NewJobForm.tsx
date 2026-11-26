@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { FileVideo, Link2, Rocket } from "lucide-react";
-import { useCreateJob, useHealth } from "@/lib/queries";
+import { useCampaigns, useCreateJob, useHealth } from "@/lib/queries";
 import type { JobKind } from "@/lib/types";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
@@ -27,13 +27,16 @@ export function NewJobForm() {
   const [value, setValue] = useState("");
   const [kind, setKind] = useState<JobKind>("render");
   const [top, setTop] = useState(10);
+  const { data: campaigns = [] } = useCampaigns();
+  const live = campaigns.filter((c) => c.active && (!c.ends_at || new Date(c.ends_at) > new Date()));
+  const [campaignId, setCampaignId] = useState<string>("");
 
   const needsKey = kind === "render" && health && !health.keys.anthropic;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const body = source === "url" ? { url: value.trim() } : { path: value.trim().replace(/^"|"$/g, "") };
-    create.mutate({ kind, top, ...body }, { onSuccess: (job) => router.push(`/jobs/${job.id}`) });
+    create.mutate({ kind, top, campaign_id: campaignId ? Number(campaignId) : null, ...body },{ onSuccess: (job) => router.push(`/jobs/${job.id}`) });
   };
 
   return (
@@ -69,7 +72,16 @@ export function NewJobForm() {
           </Field>
         </div>
 
-        {needsKey && <ErrorNote error="Full run needs ANTHROPIC_API_KEY in .env. Pick “Find moments only” or add the key and restart the API." />}
+        <Field label="Campaign" hint={campaignId
+          ? "Its logo, required caption and rules are used for these clips."
+          : "No campaign: no logo, no required caption."}>
+          <Select value={campaignId} onChange={(e) => setCampaignId(e.target.value)}>
+            <option value="">None</option>
+            {live.map((c) => <option key={c.id} value={c.id}>{c.name}{c.streamer ? ` (${c.streamer})` : ""}</option>)}
+          </Select>
+        </Field>
+
+        {needsKey &&<ErrorNote error="Full run needs ANTHROPIC_API_KEY in .env. Pick “Find moments only” or add the key and restart the API." />}
         <ErrorNote error={create.error} />
 
         <div className="flex justify-end">

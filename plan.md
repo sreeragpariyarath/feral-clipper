@@ -262,6 +262,17 @@ and the old review server `review_ui/server.py` + `review_ui/jobs.py` (replaced 
 - Posting kit per clip: title, description, tags per platform, thumbnail, best posting time.
 - Posted list with views entered by hand and payout estimate.
 - **Done when:** a new campaign is set up in the UI, and its clips come out with the right logo and caption.
+- **Status (2026-11-26): done.** Tested in the UI: made a campaign with a TEST logo, started a job with it,
+  clip 912 came out with the logo on screen for the whole clip and the campaign caption word for word
+  (test campaign, post and render removed afterwards; 912 restored).
+  - Campaign settings (logo file / on-off / width / top, caption, hashtags, brief) are copied into the job,
+    so editing a campaign never changes a running job. Logo must exist and be PNG / WEBP / JPG.
+  - Posting kit per clip (YouTube / TikTok / Instagram): title (never "GTA 5"), caption with the campaign
+    text first, tags, character limits, next three peak times for a USA / Canada audience in local time.
+    No API call.
+  - Posted page: mark a clip as posted (link optional), type in views, payout = views / 1000 x rate,
+    totals per campaign. Views are typed by hand (no platform logins).
+  - SQLite gets new columns automatically (add-only migration in `backend/db.py`).
 
 ### Phase 6 — Reliability and housekeeping
 - Tests for step functions and API endpoints.

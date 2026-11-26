@@ -12,6 +12,7 @@ class JobCreate(BaseModel):
     url: str = ""
     path: str = ""
     top: int = Field(default=10, ge=1, le=30)
+    campaign_id: int | None = None
 
     @model_validator(mode="after")
     def one_source(self) -> "JobCreate":
